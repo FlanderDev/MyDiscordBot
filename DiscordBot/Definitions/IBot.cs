@@ -3,6 +3,6 @@
 namespace DiscordBot.Definitions;
 public interface IBot
 {
-    Task StartAsync(ServiceProvider services);
-    Task StopAsync();
+    Task<bool> StartAsync(ServiceProvider services, string? botToken, string? name);
+    Task<bool> StopAsync();
 }

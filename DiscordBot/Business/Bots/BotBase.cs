@@ -1,13 +1,13 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
-using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot.Definitions;
+using Discord;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System.Reflection;
 
 namespace DiscordBot.Business.Bots;
-public sealed class TestingBot : IBot
+
+internal abstract class BotBase
 {
     internal DiscordSocketClient DiscordSocketClient { get; }
     internal CommandService Commands { get; }
@@ -15,7 +15,7 @@ public sealed class TestingBot : IBot
     internal string? Name { get; private set; }
     internal char? Prefix { get; private set; }
 
-    public TestingBot(IServiceProvider serviceProvider, char? prefix = null)
+    public BotBase(IServiceProvider serviceProvider, char? prefix = null)
     {
         ServiceProvider = serviceProvider;
         Prefix = prefix;

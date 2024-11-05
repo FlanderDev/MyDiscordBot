@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
+using System.Text.Json;
 using DiscordBot.Business.Bots;
-using DiscordBot.Definitions;
+using DiscordBot.Models.Danbooru;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -14,14 +15,15 @@ internal static class Program
     {
         try
         {
-            await using var log = new LoggerConfiguration()
+            await using var logger = new LoggerConfiguration()
             .WriteTo.Console() //Default: Verbose
             .WriteTo.File("Log/log.txt", LogEventLevel.Information)
             .CreateLogger();
 
-            log.Information("Initialized logging.");
+            Log.Logger = logger;
+            Log.Information("Initialized logging.");
 
-            var runningSpaceNamespace = typeof(RunningSpace.RunningSpace).Namespace;
+            var runningSpaceNamespace = typeof(RunningSpace.RunningSpace).Namespace?.Split('.').Last();
             if (string.IsNullOrWhiteSpace(runningSpaceNamespace))
             {
                 Log.Warning("Invalid namespace.");
@@ -45,11 +47,21 @@ internal static class Program
 
             await using var serviceProvider = new ServiceCollection()
                 .AddSingleton<IConfiguration>(configuration)
-                .AddScoped<IBot, TestingBot>()
+                .AddScoped<TestingBot>()
+                .AddScoped<KumoBot>()
                 .BuildServiceProvider();
 
-            var bot = serviceProvider.GetRequiredService<IBot>();
-            await bot.StartAsync(serviceProvider);
+
+            //var testingBot = serviceProvider.GetRequiredService<TestingBot>();
+            //var testing = await testingBot.StartAsync(serviceProvider);
+
+
+            var testingBot = serviceProvider.GetRequiredService<TestingBot>();
+            var resultTesting = await testingBot.StartAsync(serviceProvider, configuration["DiscordBot:Token"], configuration["DiscordBot:Name"]);
+
+
+            var kumoBot = serviceProvider.GetRequiredService<KumoBot>();
+            var resultKumo = await kumoBot.StartAsync(serviceProvider, configuration["DiscordBotTesting:Token"], configuration["DiscordBotTesting:Name"]);
 
             do
             {
@@ -57,7 +69,8 @@ internal static class Program
             } while (Console.ReadKey(true).Key != ConsoleKey.Q);
             Log.Information("Shutting down...");
 
-            await bot.StopAsync();
+            await testingBot.StopAsync();
+            await kumoBot.StopAsync();
 
             Log.Information("Ran to completion.");
             return 0;

@@ -1,14 +1,16 @@
 ﻿using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers;
+using Serilog;
 
 namespace DiscordBot.Commands;
 
 public class AudioCommand : ModuleBase<SocketCommandContext>
 {
     [Command("ara ara", RunMode = RunMode.Async)]
-    public async Task ExecuteAsync([Remainder] string number)
+    public async Task ExecuteAsync([Remainder] string number = "")
     {
+        Log.Debug("Executing {method}.", nameof(ExecuteAsync));
         var voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
         try
         {
@@ -27,13 +29,14 @@ public class AudioCommand : ModuleBase<SocketCommandContext>
             for (var i = 0; i < aras; i++)
             {
                 var num = Random.Shared.Next(10, 510);
+                //await audioHelper.PlayAudioAsync(@$"E:\aras\ara-{num}.mp3");
                 await audioHelper.PlayAudioAsync(@$"https://faunaraara.com/sounds/ara-{num}.mp3");
             }
             await audioHelper.FlushAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Log.Error(ex, "Could not execute {method}." , nameof(ExecuteAsync));
         }
         finally
         {
