@@ -1,20 +1,32 @@
 ﻿using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers;
+using DiscordBot.Business.Manager;
 using Serilog;
 
 namespace DiscordBot.Commands;
 
 public class AudioCommand : ModuleBase<SocketCommandContext>
 {
-    [Command("ara ara", RunMode = RunMode.Async)]
-    public async Task ExecuteAsync([Remainder] string number = "")
+    [Command("ara", RunMode = RunMode.Async)]
+    public async Task ExecuteAsync([Remainder] string text = "")
     {
+        var botId = Context.Client.CurrentUser.Id;
+        if (botId == 1302467929761120347)
+            return;
+
         Log.Debug("Executing {method}.", nameof(ExecuteAsync));
         var voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
         try
         {
-            var aras = int.TryParse(number.Trim(), out var temp) ? (temp > 0 ? temp : 1) : 3;
+            var split = text.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            var id = split.Length > 0 ? split[0] : "-1";
+            var araId = int.TryParse(id.Trim(), out var idTemp) ? idTemp : -1;
+
+            var number = split.Length > 1 ? split[1] : "1";
+            var aras = int.TryParse(number.Trim(), out var numTemp) ? numTemp : 3;
+
             Console.WriteLine($"[{DateTime.Now:g}] {Context.Guild.Name}: {Context.User.GlobalName} '{number}'={aras}");
 
             if (voiceChannel == null)
@@ -28,15 +40,22 @@ public class AudioCommand : ModuleBase<SocketCommandContext>
 
             for (var i = 0; i < aras; i++)
             {
-                var num = Random.Shared.Next(10, 510);
+                var num = araId == -1 ? Random.Shared.Next(10, 510) : araId;
                 //await audioHelper.PlayAudioAsync(@$"E:\aras\ara-{num}.mp3");
-                await audioHelper.PlayAudioAsync(@$"https://faunaraara.com/sounds/ara-{num}.mp3");
+                var araUrl = @$"https://faunaraara.com/sounds/ara-{num}.mp3";
+                if (araId == -1)
+                    _ = Context.Channel.SendMessageAsync($"[Ara-{num}]({araUrl})");
+
+                var audioResource = await FileManager.GetLocalReosurceOrDownloadAsync($"ara-{num}.mp3", araUrl);
+                await audioHelper.PlayAudioAsync(araUrl);
+
+                await Task.Delay(1000);
             }
             await audioHelper.FlushAsync();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not execute {method}." , nameof(ExecuteAsync));
+            Log.Error(ex, "Could not execute {method}.", nameof(ExecuteAsync));
         }
         finally
         {

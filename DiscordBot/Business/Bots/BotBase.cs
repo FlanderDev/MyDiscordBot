@@ -80,6 +80,7 @@ internal abstract class BotBase
 
     private async Task MessageReceived(SocketMessage arg)
     {
+        Log.Verbose(arg.Content);
         if (arg is not SocketUserMessage message || message.Author.IsBot)
             return;
 

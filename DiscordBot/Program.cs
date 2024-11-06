@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
-using System.Text.Json;
 using DiscordBot.Business.Bots;
-using DiscordBot.Models.Danbooru;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -15,12 +13,11 @@ internal static class Program
     {
         try
         {
-            await using var logger = new LoggerConfiguration()
-            .WriteTo.Console() //Default: Verbose
+            Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console(LogEventLevel.Verbose) //Default: Verbose
             .WriteTo.File("Log/log.txt", LogEventLevel.Information)
             .CreateLogger();
 
-            Log.Logger = logger;
             Log.Information("Initialized logging.");
 
             var runningSpaceNamespace = typeof(RunningSpace.RunningSpace).Namespace?.Split('.').Last();
@@ -62,11 +59,12 @@ internal static class Program
 
             var kumoBot = serviceProvider.GetRequiredService<KumoBot>();
             var resultKumo = await kumoBot.StartAsync(serviceProvider, configuration["DiscordBotTesting:Token"], configuration["DiscordBotTesting:Name"]);
-
-            do
-            {
-                Console.WriteLine("Press 'q' to quit.");
-            } while (Console.ReadKey(true).Key != ConsoleKey.Q);
+            
+            await Task.Delay(Timeout.Infinite);
+            //do
+            //{
+            //    Console.WriteLine("Press 'q' to quit.");
+            //} while (Console.ReadKey(true).Key != ConsoleKey.Q);
             Log.Information("Shutting down...");
 
             await testingBot.StopAsync();

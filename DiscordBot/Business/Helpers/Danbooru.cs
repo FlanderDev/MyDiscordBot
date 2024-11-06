@@ -15,8 +15,8 @@ internal static class Danbooru
                         .AddQueryParameter("api_key", ApiKey);
 
 
-    internal static Task<string?> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);
-    internal static async Task<string?> GetRandomImageByTagAsync(int setIndex = -1, params string[] tags)
+    internal static Task<(string?, int num)> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);
+    internal static async Task<(string?, int num)> GetRandomImageByTagAsync(int setIndex = -1, params string[] tags)
     {
         try
         {
@@ -32,14 +32,14 @@ internal static class Danbooru
             if (restResult.Content == null)
             {
                 Log.Debug("You used an invalid tag, used tags: {tags}", parameterTags);
-                return null;
+                return (null, -1);
             }
 
             var posts = JsonSerializer.Deserialize<List<PostResponse>>(restResult.Content);
             if (posts == null)
             {
                 Log.Warning("Parsing error: '{content}'.", restResult.Content);
-                return null;
+                return (null, -1);
             }
 
             posts = posts.Where(w => !w.Rating.Equals("e")).ToList();
@@ -47,19 +47,19 @@ internal static class Danbooru
             if (posts.Count == 0)
             {
                 Log.Warning("No results for danbooru collection, with tags: {tags}", parameterTags);
-                return null;
+                return (null, -1);
             }
 
             var index = setIndex != -1 && posts.Count > setIndex ? setIndex : Random.Shared.Next(0, posts.Count);
             var randomResult = posts[index];
 
             Log.Debug("Returing result for tags '{tags}'.", parameterTags);
-            return randomResult.FileUrl;
+            return (randomResult.FileUrl, index);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Unexped error.");
-            return null;
+            return (null, -1);
         }
     }
 }
