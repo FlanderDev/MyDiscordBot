@@ -3,6 +3,8 @@ using Discord.Commands;
 using Discord.Rest;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
+using DiscordBot.Database;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace DiscordBot.Commands;
@@ -62,6 +64,40 @@ public class AudioCommand : ModuleBase<SocketCommandContext>
         {
             if (voiceChannel != null)
                 await voiceChannel.DisconnectAsync();
+        }
+    }
+
+
+    [Command("!", RunMode = RunMode.Async)]
+    public async Task ExecuteClipAsync([Remainder] string text)
+    {
+        var context = new DatabaseContext();
+        var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault(f => f.CallCode.Equals(text));
+        if (audioClip == null)
+            return;
+
+        var voiceChannel = (Context.Message.Author as IGuildUser)?.VoiceChannel;
+        if (voiceChannel == null)
+        {
+            Log.Warning("Could not get voice channel.");
+            return;
+        }
+
+        try
+        {
+            var audioClient = await voiceChannel.ConnectAsync();
+            using var audioHelper = new DiscordAudioHelper(audioClient);
+            await audioHelper.PlayAudioAsync(audioClip.FileName);
+            await audioHelper.FlushAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error trying to play audio.");
+            await Context.Message.ReplyAsync($"No '{text}', only errors.");
+        }
+        finally
+        {
+            await voiceChannel.DisconnectAsync();
         }
     }
 }

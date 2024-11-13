@@ -80,7 +80,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
 
             var audioClip = new AudioClip()
             {
-                FileName = fileName,
+                FileName = filePath,
                 CallCode = callCode,
                 DiscordUserId = Context.User.Id,
             };
