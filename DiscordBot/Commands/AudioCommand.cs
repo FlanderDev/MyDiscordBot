@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.Rest;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
 using DiscordBot.Database;
