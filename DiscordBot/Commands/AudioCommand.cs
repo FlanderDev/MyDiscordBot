@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
 using Serilog;
@@ -16,7 +17,7 @@ public class AudioCommand : ModuleBase<SocketCommandContext>
             return;
 
         Log.Debug("Executing {method}.", nameof(ExecuteAsync));
-        var voiceChannel = (Context.User as IGuildUser)?.VoiceChannel;
+        var voiceChannel = DiscordExtensions.GetVoiceChannel(this);
         try
         {
             var split = text.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

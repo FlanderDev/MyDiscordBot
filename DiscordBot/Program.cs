@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using DiscordBot.Business.Bots;
+using DiscordBot.Database;
+using DiscordBot.Models.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -11,6 +13,21 @@ internal static class Program
 {
     private static async Task<int> Main()
     {
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+        var audioClip = new AudioClip
+        {
+            DiscordUserId = 229720939078615040,
+            CallCode = "xcode",
+            FileName = @"E:\aras\ara-471.mp3",
+        };
+        var context = new DatabaseContext();
+        context.Database.EnsureCreated();
+        var data = context.AudioClips.FirstOrDefault(f => f.CallCode.Equals(audioClip.CallCode));
+        if (data == null)
+            context.AudioClips.Add(audioClip);
+        context.SaveChanges();
+
         try
         {
             Log.Logger = new LoggerConfiguration()
@@ -52,14 +69,12 @@ internal static class Program
             //var testingBot = serviceProvider.GetRequiredService<TestingBot>();
             //var testing = await testingBot.StartAsync(serviceProvider);
 
-
             var testingBot = serviceProvider.GetRequiredService<TestingBot>();
             var resultTesting = await testingBot.StartAsync(serviceProvider, configuration["DiscordBot:Token"], configuration["DiscordBot:Name"]);
 
+            //var kumoBot = serviceProvider.GetRequiredService<KumoBot>();
+            //var resultKumo = await kumoBot.StartAsync(serviceProvider, configuration["DiscordBotTesting:Token"], configuration["DiscordBotTesting:Name"]);
 
-            var kumoBot = serviceProvider.GetRequiredService<KumoBot>();
-            var resultKumo = await kumoBot.StartAsync(serviceProvider, configuration["DiscordBotTesting:Token"], configuration["DiscordBotTesting:Name"]);
-            
             await Task.Delay(Timeout.Infinite);
             //do
             //{
@@ -68,7 +83,7 @@ internal static class Program
             Log.Information("Shutting down...");
 
             await testingBot.StopAsync();
-            await kumoBot.StopAsync();
+            //await kumoBot.StopAsync();
 
             Log.Information("Ran to completion.");
             return 0;
@@ -78,5 +93,11 @@ internal static class Program
             Log.Error(ex, "Unexpected error. Ending application.");
             return -1;
         }
+    }
+
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception ex)
+            Log.Error(ex, "Unhandled Exception.");
     }
 }

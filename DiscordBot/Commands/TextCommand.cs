@@ -17,7 +17,7 @@ public class TextCommand : ModuleBase<SocketCommandContext>
 
             if (botId == 1302467929761120347) // Kumo
             {
-                var result = await Danbooru.GetRandomImageByTagAsync("+shiraori", "+solo");
+                var result = await DanbooruHelper.GetRandomImageByTagAsync("+shiraori", "+solo");
                 if (result.Item1 == null)
                     await Context.Channel.SendMessageAsync("YOU WORM! You won't receive ANY images from me!");
                 else
@@ -25,7 +25,7 @@ public class TextCommand : ModuleBase<SocketCommandContext>
             }
             else if (botId == 995955672934006784) //Ina
             {
-                var result = await Danbooru.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
+                var result = await DanbooruHelper.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
                 if (result.Item1 == null)
                     await Context.Channel.SendMessageAsync("Sowy Tako <3, I, couldn't fetch any images, maybe next time^^");
                 else
@@ -51,7 +51,7 @@ public class TextCommand : ModuleBase<SocketCommandContext>
             if (Context.Client.CurrentUser.Id != 995955672934006784) //Ina
                 return;
 
-            var result = await Danbooru.GetRandomImageByTagAsync(PunCounter, "+ninomae_ina'nis", "+pun");
+            var result = await DanbooruHelper.GetRandomImageByTagAsync(PunCounter, "+ninomae_ina'nis", "+pun");
             if (result.Item1 == null)
             {
                 PunCounter = result.Item2++;

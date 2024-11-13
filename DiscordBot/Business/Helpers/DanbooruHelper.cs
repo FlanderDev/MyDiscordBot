@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace DiscordBot.Business.Helpers;
 
-internal static class Danbooru
+internal static class DanbooruHelper
 {
     private const string DomainAdress = @"https://danbooru.donmai.us";
     private const string ApiKey = @"vy25T3FteHYP3Re33UdQ69Nw";

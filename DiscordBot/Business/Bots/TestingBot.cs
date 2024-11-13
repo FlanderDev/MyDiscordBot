@@ -5,6 +5,9 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Definitions;
 using Serilog;
+using DiscordBot.Database;
+using Microsoft.EntityFrameworkCore;
+using DiscordBot.Business.Helpers;
 
 namespace DiscordBot.Business.Bots;
 public sealed class TestingBot : IBot
@@ -27,7 +30,7 @@ public sealed class TestingBot : IBot
 
         DiscordSocketClient = new DiscordSocketClient(discordSocketConfig);
         Commands = new CommandService();
-        DiscordSocketClient.MessageReceived += MessageReceived;
+        DiscordSocketClient.MessageReceived += MessageReceivedAsync;
     }
 
     public async Task<bool> StartAsync(ServiceProvider services, string? botToken, string? name)
@@ -78,7 +81,8 @@ public sealed class TestingBot : IBot
         }
     }
 
-    private async Task MessageReceived(SocketMessage arg)
+    [Command(RunMode = RunMode.Async)]
+    private async Task MessageReceivedAsync(SocketMessage arg)
     {
         if (arg is not SocketUserMessage message || message.Author.IsBot)
             return;
@@ -88,6 +92,36 @@ public sealed class TestingBot : IBot
         {
             Log.Verbose("{name}: Igonred message from '{user}': '{message}'", Name, message.Author, message.Content);
             return;
+        }
+
+        var context = new DatabaseContext();
+        if (!context.AudioClips.Any())
+            return;
+
+        Console.WriteLine();
+        var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault(f => f.CallCode.Equals(arg.CleanContent));
+        if (audioClip != null)
+        {
+            var voiceChannel = (message.Author as IGuildUser)?.VoiceChannel;
+            if (voiceChannel != null)
+            {
+                try
+                {
+                    var audioClient = await voiceChannel.ConnectAsync();
+                    using var audioHelper = new DiscordAudioHelper(audioClient);
+                    await audioHelper.PlayAudioAsync(audioClip.FileName);
+                    await audioHelper.FlushAsync();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error trying to play audio.");
+                }
+                finally
+                {
+                    await voiceChannel.DisconnectAsync();
+                }
+            }
+            Log.Warning("Could not get voice channel.");
         }
 
         Log.Verbose("{name}: Acting on message from '{user}': '{message}'", Name, message.Author, message.Content);
