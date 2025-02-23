@@ -4,7 +4,7 @@ using Serilog;
 
 namespace DiscordBot.Commands;
 
-public class TextCommand : ModuleBase<SocketCommandContext>
+public sealed class TextCommand : ModuleBase<SocketCommandContext>
 {
     [Command("holobots")]
     public async Task HoloBotsAsync()

@@ -4,7 +4,7 @@ using Serilog;
 
 namespace DiscordBot.Commands;
 
-public class ManageSlashCommands : ModuleBase<SocketCommandContext>
+public sealed class ManageSlashCommands : ModuleBase<SocketCommandContext>
 {
     [Command("setupSlashCommands")]
     public async Task ExecuteAsync()

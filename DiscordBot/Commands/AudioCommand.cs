@@ -1,15 +1,42 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
-using DiscordBot.Database;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace DiscordBot.Commands;
 
-public class AudioCommand : ModuleBase<SocketCommandContext>
+public sealed class AudioCommand : ModuleBase<SocketCommandContext>
 {
+    [Command("araAll", RunMode = RunMode.Async)]
+    public async Task ExecuteAsync()
+    {
+        var voiceChannel = DiscordExtensions.GetVoiceChannel(this);
+        if (voiceChannel == null)
+        {
+            await Context.Channel.SendMessageAsync("Could not join your voice-channel, gomenasorry.");
+            return;
+        }
+
+        var audioClient = await voiceChannel.ConnectAsync();
+        using var audioHelper = new DiscordAudioHelper(audioClient);
+
+        for (var i = 12; i < 600; i++)
+        {
+            //await audioHelper.PlayAudioAsync(@$"E:\aras\ara-{num}.mp3");
+            var araUrl = @$"https://faunaraara.com/sounds/ara-{i}.mp3";
+            var audioResource = await FileManager.GetLocalReosurceOrDownloadAsync($"ara-{i}.mp3", araUrl);
+            if (audioResource == null)
+            {
+                await Context.Channel.SendMessageAsync("Your not in a VC, gomenasorry.");
+                continue;
+            }
+            await audioHelper.PlayAudioAsync(audioResource);
+
+            await Task.Delay(200);
+        }
+        await audioHelper.FlushAsync();
+    }
+
     [Command("ara", RunMode = RunMode.Async)]
     public async Task ExecuteAsync([Remainder] string text = "")
     {
@@ -63,40 +90,6 @@ public class AudioCommand : ModuleBase<SocketCommandContext>
         {
             if (voiceChannel != null)
                 await voiceChannel.DisconnectAsync();
-        }
-    }
-
-
-    [Command("!", RunMode = RunMode.Async)]
-    public async Task ExecuteClipAsync([Remainder] string text)
-    {
-        var context = new DatabaseContext();
-        var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault(f => f.CallCode.Equals(text));
-        if (audioClip == null)
-            return;
-
-        var voiceChannel = (Context.Message.Author as IGuildUser)?.VoiceChannel;
-        if (voiceChannel == null)
-        {
-            Log.Warning("Could not get voice channel.");
-            return;
-        }
-
-        try
-        {
-            var audioClient = await voiceChannel.ConnectAsync();
-            using var audioHelper = new DiscordAudioHelper(audioClient);
-            await audioHelper.PlayAudioAsync(audioClip.FileName);
-            await audioHelper.FlushAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error trying to play audio.");
-            await Context.Message.ReplyAsync($"No '{text}', only errors.");
-        }
-        finally
-        {
-            await voiceChannel.DisconnectAsync();
         }
     }
 }

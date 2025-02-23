@@ -1,103 +1,96 @@
 ﻿using System.Reflection;
 using DiscordBot.Business.Bots;
 using DiscordBot.Database;
-using DiscordBot.Models.Database;
+using DiscordBot.Models.Enteties;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 
-namespace DiscordBot;
 
-internal static class Program
+AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error((e.ExceptionObject as Exception), "Unhandled Exception.");
+
+// Ensure database has been created and has an entry.
+var context = new DatabaseContext();
+if (context.Database.EnsureCreated())
 {
-    private static async Task<int> Main()
+    context.AudioClips.Add(new AudioClip
     {
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        DiscordUserId = 229720939078615040,
+        CallCode = "xcode",
+        FileName = @"E:\aras\ara-471.mp3",
+    });
 
-        var audioClip = new AudioClip
-        {
-            DiscordUserId = 229720939078615040,
-            CallCode = "xcode",
-            FileName = @"E:\aras\ara-471.mp3",
-        };
-        var context = new DatabaseContext();
-        context.Database.EnsureCreated();
-        var data = context.AudioClips.FirstOrDefault(f => f.CallCode.Equals(audioClip.CallCode));
-        if (data == null)
-            context.AudioClips.Add(audioClip);
-        context.SaveChanges();
+    context.DiscordUsers.Add(new DiscordUser
+    {
+         Id = 229720939078615040,
+         GlobalName = "flander_lander",
+         Username = "Flan"
+    });
 
-        try
-        {
-            Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console(LogEventLevel.Verbose) //Default: Verbose
-            .WriteTo.File("Log/log.txt", LogEventLevel.Information)
-            .CreateLogger();
+    context.SaveChanges();
+}
 
-            Log.Information("Initialized logging.");
+try
+{
+    Log.Logger = new LoggerConfiguration()
+    .WriteTo.File("Log/log.txt", LogEventLevel.Information)
+    .WriteTo.Console(LogEventLevel.Verbose) //Default: Verbose
+    .CreateLogger();
 
-            var runningSpaceNamespace = typeof(RunningSpace.RunningSpace).Namespace?.Split('.').Last();
-            if (string.IsNullOrWhiteSpace(runningSpaceNamespace))
-            {
-                Log.Warning("Invalid namespace.");
-                return -3;
-            }
+    Log.Information("Initialized logging.");
 
-            var runningSpace = Path.Combine(Environment.CurrentDirectory, runningSpaceNamespace);
-            if (!Directory.Exists(runningSpace))
-            {
-                Log.Fatal("Invalid running space: '{invalidRunningSpace}'.", runningSpace);
-                return -2;
-            }
-
-            Environment.CurrentDirectory = runningSpace;
-            Log.Information($"Running in '{Environment.CurrentDirectory}'.");
-
-
-            var configuration = new ConfigurationBuilder()
-                .AddUserSecrets(Assembly.GetExecutingAssembly())
-                .Build();
-
-            await using var serviceProvider = new ServiceCollection()
-                .AddSingleton<IConfiguration>(configuration)
-                .AddScoped<TestingBot>()
-                .AddScoped<KumoBot>()
-                .BuildServiceProvider();
-
-
-            //var testingBot = serviceProvider.GetRequiredService<TestingBot>();
-            //var testing = await testingBot.StartAsync(serviceProvider);
-
-            var testingBot = serviceProvider.GetRequiredService<TestingBot>();
-            var resultTesting = await testingBot.StartAsync(serviceProvider, configuration["DiscordBot:Token"], configuration["DiscordBot:Name"]);
-
-            //var kumoBot = serviceProvider.GetRequiredService<KumoBot>();
-            //var resultKumo = await kumoBot.StartAsync(serviceProvider, configuration["DiscordBotTesting:Token"], configuration["DiscordBotTesting:Name"]);
-
-            await Task.Delay(Timeout.Infinite);
-            //do
-            //{
-            //    Console.WriteLine("Press 'q' to quit.");
-            //} while (Console.ReadKey(true).Key != ConsoleKey.Q);
-            Log.Information("Shutting down...");
-
-            await testingBot.StopAsync();
-            //await kumoBot.StopAsync();
-
-            Log.Information("Ran to completion.");
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Unexpected error. Ending application.");
-            return -1;
-        }
+    var runningSpaceNamespace = typeof(DiscordBot.RunningSpace.RunningSpace).Namespace?.Split('.').Last();
+    if (string.IsNullOrWhiteSpace(runningSpaceNamespace))
+    {
+        Log.Warning("Invalid namespace.");
+        return -3;
     }
 
-    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    var runningSpace = Path.Combine(Environment.CurrentDirectory, runningSpaceNamespace);
+    if (!Directory.Exists(runningSpace))
     {
-        if (e.ExceptionObject is Exception ex)
-            Log.Error(ex, "Unhandled Exception.");
+        Log.Fatal("Invalid running space: '{invalidRunningSpace}'.", runningSpace);
+        return -2;
     }
+
+    Environment.CurrentDirectory = runningSpace;
+    Log.Information($"Running in '{Environment.CurrentDirectory}'.");
+
+    var configuration = new ConfigurationBuilder()
+        .AddUserSecrets(Assembly.GetExecutingAssembly())
+        .Build();
+
+    await using var serviceProvider = new ServiceCollection()
+        .AddLogging(a => a.SetMinimumLevel(LogLevel.Trace))
+        .AddSingleton<IConfiguration>(configuration)
+        .AddScoped<InaNisBot>()
+        .AddScoped<KumoBot>()
+        .BuildServiceProvider();
+
+
+    //var testingBot = serviceProvider.GetRequiredService<TestingBot>();
+    //var testing = await testingBot.StartAsync(serviceProvider);
+
+    var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
+    var resultTesting = await testingBot.StartAsync(serviceProvider, configuration["DiscordBot:Token"], configuration["DiscordBot:Name"]);
+
+    //var kumoBot = serviceProvider.GetRequiredService<KumoBot>();
+    //var resultKumo = await kumoBot.StartAsync(serviceProvider, configuration["DiscordBotTesting:Token"], configuration["DiscordBotTesting:Name"]);
+
+    Log.Verbose("ready and waiting...");
+    await Task.Delay(Timeout.Infinite);
+    Log.Information("Shutting down...");
+
+    await testingBot.StopAsync();
+    //await kumoBot.StopAsync();
+
+    Log.Information("Ran to completion.");
+    return 0;
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Unexpected error. Ending application.");
+    return -1;
 }

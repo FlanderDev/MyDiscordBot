@@ -5,12 +5,13 @@ using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Definitions;
 using Serilog;
-using DiscordBot.Database;
-using Microsoft.EntityFrameworkCore;
+using NeoPixel;
 using DiscordBot.Business.Helpers;
+using DiscordBot.Commands;
 
 namespace DiscordBot.Business.Bots;
-public sealed class TestingBot : IBot
+
+public sealed class InaNisBot : IBot
 {
     internal DiscordSocketClient DiscordSocketClient { get; }
     internal CommandService Commands { get; }
@@ -18,7 +19,7 @@ public sealed class TestingBot : IBot
     internal string? Name { get; private set; }
     internal char? Prefix { get; private set; }
 
-    public TestingBot(IServiceProvider serviceProvider, char? prefix = null)
+    public InaNisBot(IServiceProvider serviceProvider, char? prefix = null)
     {
         ServiceProvider = serviceProvider;
         Prefix = prefix;
@@ -81,11 +82,32 @@ public sealed class TestingBot : IBot
         }
     }
 
+    //private Arduino Arduino { get; set; } = new Arduino("COM10", 9600)
+    //{
+    //    Logger = Log.Logger,
+    //};
+
     private async Task MessageReceivedAsync(SocketMessage arg)
     {
-        Console.WriteLine("test");
         if (arg is not SocketUserMessage message || message.Author.IsBot)
             return;
+
+        //if (message.Author.Id != 229720939078615040)
+        //    return;
+
+        await new ManualCommands(message).TriggerAllAsync();
+
+        //if (message.Equals("on"))
+        //    Arduino.SetStrip(0, Color.Green);
+        //else if (message.Equals("off"))
+        //    Arduino.SetStrip(0, Color.Red);
+
+        //var pixels = MessageHelper.GetColors(message.CleanContent);
+        //Arduino.SetPixels(pixels);
+
+
+        
+
 
         var position = 0;
         if (Prefix != null && message.HasCharPrefix('!', ref position))
