@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using DiscordBot.Business.Bots;
+﻿using DiscordBot.Business.Bots;
 using DiscordBot.Database;
 using DiscordBot.Models.Enteties;
 using Microsoft.Extensions.Configuration;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using System.Reflection;
 
 
 AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error((e.ExceptionObject as Exception), "Unhandled Exception.");
@@ -24,9 +24,9 @@ if (context.Database.EnsureCreated())
 
     context.DiscordUsers.Add(new DiscordUser
     {
-         Id = 229720939078615040,
-         GlobalName = "flander_lander",
-         Username = "Flan"
+        Id = 229720939078615040,
+        GlobalName = "flander_lander",
+        Username = "Flan"
     });
 
     context.SaveChanges();

@@ -1,5 +1,4 @@
-﻿using Discord;
-using DiscordBot.Models.Enteties;
+﻿using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
 
 namespace DiscordBot.Database;

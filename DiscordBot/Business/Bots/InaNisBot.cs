@@ -1,13 +1,11 @@
-﻿using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot.Definitions;
-using Serilog;
-using NeoPixel;
-using DiscordBot.Business.Helpers;
 using DiscordBot.Commands;
+using DiscordBot.Definitions;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using System.Reflection;
 
 namespace DiscordBot.Business.Bots;
 
@@ -106,7 +104,7 @@ public sealed class InaNisBot : IBot
         //Arduino.SetPixels(pixels);
 
 
-        
+
 
 
         var position = 0;
