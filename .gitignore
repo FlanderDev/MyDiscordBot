@@ -223,3 +223,7 @@ _Pvt_Extensions
 
 # Rider
 .idea/
+/DiscordBot/DiscordBot.db
+/DiscordBot/DiscordBot.db-shm
+/DiscordBot/DiscordBot.db-wal
+/DiscordBot/Log/log.txt
