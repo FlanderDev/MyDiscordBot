@@ -68,6 +68,12 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             var downloadProcess = ExecuteDownload(arguments);
 #if DEBUG
             var titleLine = downloadProcess.StandardOutput.ReadLine();
+            if (string.IsNullOrWhiteSpace(titleLine))
+            {
+                await message.ModifyAsync(mp => mp.Content = $"{downloadProcess.StandardError.ReadToEnd()}{Environment.NewLine}");
+                return;
+            }
+
             await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}");
 
             var queue = new Queue<string>(6);
@@ -82,16 +88,9 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                     await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}{string.Join(Environment.NewLine, [.. queue])}");
                 }
             }
-#endif
 
             await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}");
-
-
-            //_ = Task.Run(async () =>
-            //{
-            //    await Task.Delay(10000);
-            //    await message.DeleteAsync();
-            //});
+#endif
 
             var audioClip = new AudioClip()
             {
@@ -176,5 +175,6 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             Arguments = argumnets,
             UseShellExecute = false,
             RedirectStandardOutput = true,
+            RedirectStandardError = true,
         }) ?? throw new Exception("Could not initialize ffmpeg process.");
 }

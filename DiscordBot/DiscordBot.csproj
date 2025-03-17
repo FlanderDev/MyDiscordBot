@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <UserSecretsId>383753a6-10ec-42d5-8b77-ca284761a6ba</UserSecretsId>
+	  <ContainerRepository>FlansDiscordBot</ContainerRepository>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
   <ItemGroup>
@@ -156,8 +157,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="..\.dockerignore" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NeoPixel\NeoPixel.csproj" />
   </ItemGroup>
 </Project>
