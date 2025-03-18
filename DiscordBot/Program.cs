@@ -8,8 +8,7 @@ using Serilog;
 using Serilog.Events;
 using System.Reflection;
 
-
-AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error((e.ExceptionObject as Exception), "Unhandled Exception.");
+AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
 // Ensure database has been created and has an entry.
 var context = new DatabaseContext();
