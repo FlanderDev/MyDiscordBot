@@ -20,8 +20,6 @@ public sealed class ManageSlashCommands : ModuleBase<SocketCommandContext>
             return;
         }
 
-        var guild = Context.Client.GetGuild(1268915185536733184);
-
         var globalCommand = new SlashCommandBuilder();
         globalCommand.WithName("holobots");
         globalCommand.WithDescription("We bots will introduce ourselves.");

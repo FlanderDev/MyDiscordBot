@@ -15,8 +15,8 @@ internal static class DanbooruHelper
                         .AddQueryParameter("api_key", ApiKey);
 
 
-    internal static Task<(string?, int num)> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);
-    internal static async Task<(string?, int num)> GetRandomImageByTagAsync(int setIndex = -1, params string[] tags)
+    internal static Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);
+    internal static async Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(int setIndex = -1, params string[] tags)
     {
         try
         {
@@ -42,7 +42,7 @@ internal static class DanbooruHelper
                 return (null, -1);
             }
 
-            posts = posts.Where(w => !w.Rating.Equals("e")).ToList();
+            posts = [.. posts.Where(w => !w.Rating.Equals("e"))];
 
             if (posts.Count == 0)
             {

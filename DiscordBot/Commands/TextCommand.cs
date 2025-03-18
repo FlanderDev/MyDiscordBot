@@ -17,19 +17,19 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
 
             if (botId == 1302467929761120347) // Kumo
             {
-                var result = await DanbooruHelper.GetRandomImageByTagAsync("+shiraori", "+solo");
-                if (result.Item1 == null)
+                var (imageUrl, imageIndex) = await DanbooruHelper.GetRandomImageByTagAsync("+shiraori", "+solo");
+                if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("YOU WORM! You won't receive ANY images from me!");
                 else
-                    await Context.Channel.SendMessageAsync(result.Item1);
+                    await Context.Channel.SendMessageAsync(imageUrl);
             }
             else if (botId == 995955672934006784) //Ina
             {
-                var result = await DanbooruHelper.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
-                if (result.Item1 == null)
+                var (imageUrl, imageIndex) = await DanbooruHelper.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
+                if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("Sowy Tako <3, I, couldn't fetch any images, maybe next time^^");
                 else
-                    await Context.Channel.SendMessageAsync(result.Item1);
+                    await Context.Channel.SendMessageAsync(imageUrl);
             }
             else
                 throw new Exception($"Bot's don't match any id: {botId}");
@@ -51,14 +51,14 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
             if (Context.Client.CurrentUser.Id != 995955672934006784) //Ina
                 return;
 
-            var result = await DanbooruHelper.GetRandomImageByTagAsync(PunCounter, "+ninomae_ina'nis", "+pun");
-            if (result.Item1 == null)
+            var (imageUrl, imageIndex) = await DanbooruHelper.GetRandomImageByTagAsync(PunCounter, "+ninomae_ina'nis", "+pun");
+            if (imageUrl == null)
             {
-                PunCounter = result.Item2++;
+                PunCounter = imageIndex++;
                 await Context.Channel.SendMessageAsync("I'm not felling *pan*Tastic.");
             }
             else
-                await Context.Channel.SendMessageAsync(result.Item1);
+                await Context.Channel.SendMessageAsync(imageUrl);
         }
         catch (Exception ex)
         {

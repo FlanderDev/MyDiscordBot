@@ -10,7 +10,7 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
         await Task.WhenAll(ClaimAsync(), FuckTwitterAsync());
     }
 
-    public async Task ClaimAsync()
+    private async Task ClaimAsync()
     {
         if (!socketUserMessage.CleanContent.StartsWith(".claim", StringComparison.OrdinalIgnoreCase))
             return;
@@ -30,13 +30,14 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
         await referenceMessage.AddReactionAsync(buttonComponent.Emote);
     }
 
-    public async Task FuckTwitterAsync()
+    private async Task FuckTwitterAsync()
     {
-        if (new string[] { "x.com", "twitter.com", "fxtwitter.com" }.Any(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase)))
-        {
-            await socketUserMessage.ReplyAsync("https://tenor.com/view/shitter-alert-cake-gif-19194039");
-            await socketUserMessage.Author.SendMessageAsync($"We don't support twitter because of it's CEO. Inform yourself:{Environment.NewLine}https://en.wikipedia.org/wiki/Elon_Musk#Accusations_of_antisemitism");
-            await socketUserMessage.DeleteAsync();
-        }
+        string[] TwitterUrls = ["x.com", "twitter.com", "fxtwitter.com"];
+        if (!TwitterUrls.Any(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase)))
+            return;
+
+        await socketUserMessage.ReplyAsync("https://tenor.com/view/shitter-alert-cake-gif-19194039");
+        await socketUserMessage.Author.SendMessageAsync($"We don't support twitter because of it's CEO. Inform yourself:{Environment.NewLine}https://en.wikipedia.org/wiki/Elon_Musk#Accusations_of_antisemitism");
+        await socketUserMessage.DeleteAsync();
     }
 }
