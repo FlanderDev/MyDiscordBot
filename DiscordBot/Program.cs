@@ -41,7 +41,7 @@ try
 
 
     var configuration = new ConfigurationBuilder()
-        .AddUserSecrets(Assembly.GetExecutingAssembly())
+        .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables()
         .Build();
 
