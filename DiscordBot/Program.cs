@@ -1,6 +1,5 @@
 ﻿using DiscordBot.Business.Bots;
 using DiscordBot.Database;
-using DiscordBot.Models.Enteties;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,31 +7,12 @@ using Serilog;
 using Serilog.Events;
 using System.Reflection;
 
-AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
-
-// Ensure database has been created and has an entry.
-var context = new DatabaseContext();
-if (context.Database.EnsureCreated())
-{
-    context.AudioClips.Add(new AudioClip
-    {
-        DiscordUserId = 229720939078615040,
-        CallCode = "xcode",
-        FileName = @"E:\aras\ara-471.mp3",
-    });
-
-    context.DiscordUsers.Add(new DiscordUser
-    {
-        Id = 229720939078615040,
-        GlobalName = "flander_lander",
-        Username = "Flan"
-    });
-
-    context.SaveChanges();
-}
 
 try
 {
+    AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+
+
     Log.Logger = new LoggerConfiguration()
     .WriteTo.File("Log/log.txt", LogEventLevel.Information)
     .WriteTo.Console(LogEventLevel.Verbose) //Default: Verbose
@@ -40,7 +20,9 @@ try
 
     Log.Information("Initialized logging.");
 
-    var runningSpaceNamespace = typeof(DiscordBot.RunningSpace.RunningSpace).Namespace?.Split('.').Last();
+    DatabaseContext.CreateDefault();
+
+    var runningSpaceNamespace = typeof(DiscordBot.RunningSpace.RunningSpace).Namespace?.Split('.').LastOrDefault();
     if (string.IsNullOrWhiteSpace(runningSpaceNamespace))
     {
         Log.Warning("Invalid namespace.");
@@ -57,8 +39,10 @@ try
     Environment.CurrentDirectory = runningSpace;
     Log.Information($"Running in '{Environment.CurrentDirectory}'.");
 
+
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly())
+        .AddEnvironmentVariables()
         .Build();
 
     await using var serviceProvider = new ServiceCollection()
