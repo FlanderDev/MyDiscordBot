@@ -8,11 +8,7 @@
 		<ContainerRepository>FlansDiscordBot</ContainerRepository>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Compile Remove="Log\**" />
-	  <EmbeddedResource Remove="Log\**" />
-	  <None Remove="Log\**" />
-	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="Discord.Net" Version="3.17.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
