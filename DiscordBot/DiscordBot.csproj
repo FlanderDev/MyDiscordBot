@@ -9,6 +9,11 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="Log\**" />
+	  <EmbeddedResource Remove="Log\**" />
+	  <None Remove="Log\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Discord.Net" Version="3.17.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.3" />
@@ -148,9 +153,6 @@
 		<None Update="RunningSpace\yt-dlp.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Log\" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Remove="..\.dockerignore" />
