@@ -41,18 +41,9 @@ try
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
 
-    var values = Environment.GetEnvironmentVariables()
-        .Cast<DictionaryEntry>()
-        .Select(s => $"{s.Key}={s.Value}")
-        .ToList();
-    var text = string.Join(Environment.NewLine, values);
-    Log.Verbose($"{Environment.NewLine}{Environment.NewLine}{text}{Environment.NewLine}{Environment.NewLine}");
-
-    var nameValue = configuration.GetLogValue("DiscordBot:Name");
     var tokenValue = configuration.GetLogValue("DiscordBot:Token");
-
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
-    var resultTesting = await testingBot.StartAsync(serviceProvider, tokenValue, nameValue);
+    var resultTesting = await testingBot.StartAsync(serviceProvider, tokenValue);
 
 
     Log.Verbose("ready and waiting...");
