@@ -11,7 +11,7 @@ public sealed class DatabaseContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite($"Data source={nameof(DiscordBot)}.db");
+        optionsBuilder.UseSqlite($"Data source=./{nameof(DiscordBot)}.db");
     }
 
     internal static bool CreateDefault()

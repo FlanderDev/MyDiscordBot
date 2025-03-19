@@ -26,7 +26,7 @@ internal static class StartupHelper
     {
         var value = configuration[variableName];
         if (string.IsNullOrWhiteSpace(value))
-            Log.Warning("Tried to get variable '{name}' but failed.", variableName);
+            Log.Warning("Tried to get the environment variable '{name}' but failed.", variableName);
         else
             Log.Verbose("{variable}: '{value}'", variableName, value);
         return value;

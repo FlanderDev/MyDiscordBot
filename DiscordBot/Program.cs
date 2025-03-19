@@ -41,7 +41,6 @@ try
         .BuildServiceProvider();
 
     var tokenValue = configuration.GetLogValue("DiscordBot:Token");
-    _ = configuration.GetLogValue("DiscordBot__Token");
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
     var resultTesting = await testingBot.StartAsync(serviceProvider, tokenValue);
 

@@ -72,6 +72,8 @@ public sealed class InaNisBot
 
     private async Task MessageReceivedAsync(SocketMessage arg)
     {
+        Log.Verbose("Received Message: {newLine}{message}", Environment.NewLine, arg.CleanContent);
+
         if (arg is not SocketUserMessage message || message.Author.IsBot)
             return;
 
