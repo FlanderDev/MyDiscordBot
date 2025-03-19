@@ -1,4 +1,5 @@
 ﻿using DiscordBot.Business.Bots;
+using DiscordBot.Business.Helpers;
 using DiscordBot.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,27 +8,31 @@ using Serilog;
 using Serilog.Events;
 using System.Reflection;
 
-
 try
 {
     AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+
 
     var errorCode = SetRunningDirectory();
     if (errorCode != null)
         return errorCode.Value;
 
+
     Log.Logger = new LoggerConfiguration()
-    .WriteTo.File("Log/log.txt", LogEventLevel.Information)
-    .WriteTo.Console(LogEventLevel.Verbose) //Default: Verbose
-    .CreateLogger();
+        .MinimumLevel.Verbose()
+        .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
+        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose) //Default: Verbose
+        .CreateLogger();
     Log.Information("Initialized logging.");
+
+
+    DatabaseContext.CreateDefault();
+
 
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables()
         .Build();
-
-    DatabaseContext.CreateDefault();
 
     await using var serviceProvider = new ServiceCollection()
         .AddLogging(a => a.SetMinimumLevel(LogLevel.Trace))
@@ -35,13 +40,18 @@ try
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
 
+
+    var nameValue = configuration.GetLogValue("DiscordBot:Name");
+    var tokenValue = configuration.GetLogValue("DiscordBot:Token");
+
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
-    var resultTesting = await testingBot.StartAsync(serviceProvider, configuration["DiscordBot:Token"], configuration["DiscordBot:Name"]);
+    var resultTesting = await testingBot.StartAsync(serviceProvider, tokenValue, nameValue);
+
 
     Log.Verbose("ready and waiting...");
     await Task.Delay(Timeout.Infinite);
-    Log.Information("Shutting down...");
 
+    Log.Information("Shutting down...");
     await testingBot.StopAsync();
 
     Log.Information("Ran to completion.");
