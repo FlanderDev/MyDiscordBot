@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using System.Collections;
 using System.Reflection;
 
 try
@@ -40,6 +41,12 @@ try
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
 
+    var values = Environment.GetEnvironmentVariables()
+        .Cast<DictionaryEntry>()
+        .Select(s => $"{s.Key}={s.Value}")
+        .ToList();
+    var text = string.Join(Environment.NewLine, values);
+    Log.Verbose($"{Environment.NewLine}{Environment.NewLine}{text}{Environment.NewLine}{Environment.NewLine}");
 
     var nameValue = configuration.GetLogValue("DiscordBot:Name");
     var tokenValue = configuration.GetLogValue("DiscordBot:Token");

@@ -21,7 +21,7 @@ public sealed class DatabaseContext : DbContext
             using var context = new DatabaseContext();
             if (!context.Database.EnsureCreated())
             {
-                Log.Verbose("Database did not need to becreated.");
+                Log.Verbose("Database did not need to be created.");
                 return true;
             }
 
