@@ -1,5 +1,4 @@
-﻿using Discord.Rest;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Serilog;
 
 namespace DiscordBot.Business.Helpers;

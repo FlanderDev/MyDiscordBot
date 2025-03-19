@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using System.Collections;
 using System.Reflection;
 
 try
@@ -42,6 +41,7 @@ try
         .BuildServiceProvider();
 
     var tokenValue = configuration.GetLogValue("DiscordBot:Token");
+    _ = configuration.GetLogValue("DiscordBot__Token");
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
     var resultTesting = await testingBot.StartAsync(serviceProvider, tokenValue);
 
