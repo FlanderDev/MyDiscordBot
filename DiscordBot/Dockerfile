@@ -12,9 +12,13 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
 
 COPY DiscordBot/ ./DiscordBot/
 WORKDIR /src/DiscordBot
-RUN dotnet build -c Release -o /app/build
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    --mount=type=cache,target=/root/.cache/msbuild \
+    dotnet build -c Release -o /app/build
 
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    --mount=type=cache,target=/root/.cache/msbuild \
+    dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS runtime
 WORKDIR /app
