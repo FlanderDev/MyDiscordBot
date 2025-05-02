@@ -10,14 +10,6 @@ using System.Reflection;
 
 try
 {
-    AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
-
-
-    var errorCode = SetRunningDirectory();
-    if (errorCode != null)
-        return errorCode.Value;
-
-
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Verbose()
         .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
@@ -25,9 +17,13 @@ try
         .CreateLogger();
     Log.Information("Initialized logging.");
 
+    AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+
+    var errorCode = SetRunningDirectory();
+    if (errorCode != null)
+        return errorCode.Value;
 
     DatabaseContext.CreateDefault();
-
 
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
@@ -74,7 +70,7 @@ static int? SetRunningDirectory()
     }
 
     var runningSpace = Path.Combine(Environment.CurrentDirectory, runningSpaceNamespace);
-    if (!Directory.Exists(runningSpace))
+    if (!Directory.CreateDirectory(runningSpace).Exists)
     {
         Log.Fatal("Invalid running space: '{invalidRunningSpace}'.", runningSpace);
         return -2;

@@ -67,26 +67,27 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             var message = await Context.Message.ReplyAsync($"Starting Download for '{callCode}'.");
             var downloadProcess = ExecuteDownload(arguments);
 #if DEBUG
-            var titleLine = downloadProcess.StandardOutput.ReadLine();
+            var titleLine = await downloadProcess.StandardOutput.ReadLineAsync();
             if (string.IsNullOrWhiteSpace(titleLine))
             {
-                await message.ModifyAsync(mp => mp.Content = $"{downloadProcess.StandardError.ReadToEnd()}{Environment.NewLine}");
+                var errorText = await downloadProcess.StandardError.ReadToEndAsync();
+                await message.ModifyAsync(mp => mp.Content = $"{errorText}{Environment.NewLine}");
                 return;
             }
 
             await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}");
 
             var queue = new Queue<string>(6);
-            while (downloadProcess.StandardOutput.ReadLine() is string progressLine)
+            while (await downloadProcess.StandardOutput.ReadLineAsync() is { } progressLine)
             {
                 if (queue.Count > 6)
                     queue.Dequeue();
 
-                if (!string.IsNullOrWhiteSpace(progressLine))
-                {
-                    queue.Enqueue(progressLine);
-                    await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}{string.Join(Environment.NewLine, [.. queue])}");
-                }
+                if (string.IsNullOrWhiteSpace(progressLine))
+                    continue;
+                
+                queue.Enqueue(progressLine);
+                await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}{string.Join(Environment.NewLine, [.. queue])}");
             }
 
             await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}");

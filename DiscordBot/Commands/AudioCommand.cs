@@ -8,7 +8,7 @@ namespace DiscordBot.Commands;
 public sealed class AudioCommand : ModuleBase<SocketCommandContext>
 {
     [Command("araAll", RunMode = RunMode.Async)]
-    public async Task ExecuteAsync()
+    public async Task AraAllAsync()
     {
         var voiceChannel = DiscordExtensions.GetVoiceChannel(this);
         if (voiceChannel == null)
@@ -38,13 +38,13 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
     }
 
     [Command("ara", RunMode = RunMode.Async)]
-    public async Task ExecuteAsync([Remainder] string text = "")
+    public async Task AraAsync([Remainder] string text = "")
     {
         var botId = Context.Client.CurrentUser.Id;
         if (botId == 1302467929761120347)
             return;
 
-        Log.Debug("Executing {method}.", nameof(ExecuteAsync));
+        Log.Debug("Executing {method}.", nameof(AraAllAsync));
         var voiceChannel = DiscordExtensions.GetVoiceChannel(this);
         try
         {
@@ -84,7 +84,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not execute {method}.", nameof(ExecuteAsync));
+            Log.Error(ex, "Could not execute {method}.", nameof(AraAllAsync));
         }
         finally
         {
