@@ -10,6 +10,10 @@ using System.Reflection;
 
 try
 {
+    var errorCode = SetRunningDirectory();
+    if (errorCode != null)
+        return errorCode.Value;
+
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Verbose()
         .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
@@ -29,10 +33,6 @@ try
         .AddSingleton<IConfiguration>(configuration)
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
-
-    var errorCode = SetRunningDirectory();
-    if (errorCode != null)
-        return errorCode.Value;
     
     if (configuration.GetLogValue("Dependencies:Disable") == null)
         await DependencyHelper.LoadMissingAsync();
