@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS builder
 WORKDIR /app
 
 # Copy the project file and restore dependencies
-COPY --link ./DiscordBot.csproj ./
+COPY --link ./DiscordBot/DiscordBot.csproj ./
 RUN --mount=type=cache,target=/root/.nuget/packages \
     --mount=type=cache,target=/root/.cache/msbuild \
     dotnet restore
