@@ -39,7 +39,12 @@ try
 
     DatabaseContext.CreateDefault();
     
-    var botTokenValue = configuration.GetLogValue("DiscordBot:Token");
+    if (configuration.GetLogValue("DiscordBot:Token") is not { } botTokenValue)
+    {
+        Log.Warning("No discord token has been provided, stopping application.");
+        return 100;
+    }
+
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
     await testingBot.StartAsync(serviceProvider, botTokenValue);
 

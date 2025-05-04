@@ -7,6 +7,7 @@
 		<Nullable>enable</Nullable>
 		<ContainerRepository>FlansDiscordBot</ContainerRepository>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<UserSecretsId>3a56e86e-33dc-40f5-9ee9-9eb0edf58cb8</UserSecretsId>
 	</PropertyGroup>
 	
 	<ItemGroup>
