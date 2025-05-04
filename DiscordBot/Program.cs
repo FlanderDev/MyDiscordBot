@@ -17,13 +17,7 @@ try
         .CreateLogger();
     Log.Information("Initialized logging.");
 
-    AppDomain.CurrentDomain.UnhandledException += (o, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
-
-    var errorCode = SetRunningDirectory();
-    if (errorCode != null)
-        return errorCode.Value;
-
-    DatabaseContext.CreateDefault();
+    AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
@@ -36,10 +30,19 @@ try
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
 
-    var tokenValue = configuration.GetLogValue("DiscordBot:Token");
-    var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
-    var resultTesting = await testingBot.StartAsync(serviceProvider, tokenValue);
+    var errorCode = SetRunningDirectory();
+    if (errorCode != null)
+        return errorCode.Value;
+    
+    var tokenValue = configuration.GetLogValue("Dependencies:Disable");
+    if (string.IsNullOrWhiteSpace(tokenValue))
+        await DependencyHelper.LoadMissingAsync();
 
+    DatabaseContext.CreateDefault();
+    
+    var botTokenValue = configuration.GetLogValue("DiscordBot:Token");
+    var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
+    await testingBot.StartAsync(serviceProvider, botTokenValue);
 
     Log.Verbose("ready and waiting...");
     await Task.Delay(Timeout.Infinite);
@@ -77,6 +80,6 @@ static int? SetRunningDirectory()
     }
 
     Environment.CurrentDirectory = runningSpace;
-    Log.Information($"Running in '{Environment.CurrentDirectory}'.");
+    Log.Information("Running in '{currentDirectory}'.", Environment.CurrentDirectory);
     return null;
 }
