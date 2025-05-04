@@ -25,7 +25,7 @@ internal static class DependencyHelper
                 return;
             }
 
-            Log.Information("Downloadign dependencies...");
+            Log.Information("Downloading dependencies...");
             var restClient = new RestClient(githubUrl);
             var fileDownloadRequest = new RestRequest("/discord-net/Discord.Net/raw/refs/heads/dev/voice-natives/vnext_natives_win32_x64.zip");
             var fileDownloadStream = await restClient.DownloadStreamAsync(fileDownloadRequest);
@@ -39,10 +39,10 @@ internal static class DependencyHelper
             foreach (var entry in zip.Entries.Where(w => w.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
             {
                 entry.ExtractToFile(entry.Name);
-                Log.Information("Downloaded dependency {file}.", entry.Name);
+                Log.Information("Extracted dependency {file}.", entry.Name);
             }
 
-            Log.Information("Done downloading dependencies.");
+            Log.Information("Done getting dependencies.");
         }
         else
             Log.Information("Running on unsupported operating system. You'll have to handle dependencies yourself.");
