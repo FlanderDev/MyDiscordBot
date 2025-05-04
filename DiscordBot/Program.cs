@@ -34,8 +34,7 @@ try
     if (errorCode != null)
         return errorCode.Value;
     
-    var tokenValue = configuration.GetLogValue("Dependencies:Disable");
-    if (string.IsNullOrWhiteSpace(tokenValue))
+    if (configuration.GetLogValue("Dependencies:Disable") == null)
         await DependencyHelper.LoadMissingAsync();
 
     DatabaseContext.CreateDefault();
@@ -65,14 +64,7 @@ finally
 
 static int? SetRunningDirectory()
 {
-    var runningSpaceNamespace = typeof(DiscordBot.RunningSpace.RunningSpace).Namespace?.Split('.').LastOrDefault();
-    if (string.IsNullOrWhiteSpace(runningSpaceNamespace))
-    {
-        Log.Warning("Invalid namespace.");
-        return -3;
-    }
-
-    var runningSpace = Path.Combine(Environment.CurrentDirectory, runningSpaceNamespace);
+    var runningSpace = Path.Combine(Environment.CurrentDirectory, "RunningSpace");
     if (!Directory.CreateDirectory(runningSpace).Exists)
     {
         Log.Fatal("Invalid running space: '{invalidRunningSpace}'.", runningSpace);

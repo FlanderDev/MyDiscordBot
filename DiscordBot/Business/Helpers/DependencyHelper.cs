@@ -1,8 +1,7 @@
-using System.Net;
 using DiscordBot.Models.Dependencies;
-using FluentFTP;
 using RestSharp;
 using Serilog;
+using System.IO.Compression;
 
 namespace DiscordBot.Business.Helpers;
 
@@ -10,55 +9,43 @@ internal static class DependencyHelper
 {
     internal static async Task LoadMissingAsync()
     {
-        if (!File.Exists("libsodium"))
-            await DownloadLibsodiumAsync();
+        const string githubUrl = "https://github.com";
 
-        if (!File.Exists("opium"))
-            await DownloadOpiusAsync();
+        if (OperatingSystem.IsLinux())
+        {
+            Log.Verbose("You're running this application on linux. " +
+                "The dependencies should have been installed by the docekr image. " +
+                "If you encounter errors try adding them manually: {one} {two} {three}", "FFMPEG", "opus", "libsodium");
+        }
+        else if (OperatingSystem.IsWindows())
+        {
+            if (File.Exists("libopus.dll") && File.Exists("libsodium.dll"))
+            {
+                Log.Verbose("Both dependencies {one} and {two} exist. Check for {three} yourself.", "libopus.dll", "libsodium.dll", "FFMPEG");
+                return;
+            }
 
-        Log.Verbose("Done checking dependencies.");
-    }
+            Log.Information("Downloadign dependencies...");
+            var restClient = new RestClient(githubUrl);
+            var fileDownloadRequest = new RestRequest("/discord-net/Discord.Net/raw/refs/heads/dev/voice-natives/vnext_natives_win32_x64.zip");
+            var fileDownloadStream = await restClient.DownloadStreamAsync(fileDownloadRequest);
+            if (fileDownloadStream == null)
+            {
+                Log.Warning("Failed to stream from archive {host}{path}.", githubUrl, fileDownloadRequest.Resource);
+                return;
+            }
 
-    private static async Task DownloadOpiusAsync()
-    {
-        try
-        {
-            var ftpClientAsync = new AsyncFtpClient("ftp.osuosl.org");
-            await ftpClientAsync.Connect();
-            var listigns = (await ftpClientAsync.GetListing("/pub/xiph/releases/opus/")).OrderBy(x => x.Modified).ToList();
-            
-            
-            var ftpClient = new FtpClient("ftp.osuosl.org");
-            // ftpClient.Credentials = new NetworkCredential("anonymous", "anonymous@example.com");
-            ftpClient.Connect();
-            var files = ftpClient.GetListing("/pub/xiph/releases/opus/").OrderBy(x => x.Modified).ToList();
-            var result = ftpClient.DownloadBytes(out var bytes, "");
-            
-            Log.Information("Sucessfully downladed dependency opus.");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Could not downlaod libsodium.");
-        }
-    }
+            using var zip = new ZipArchive(fileDownloadStream, ZipArchiveMode.Read);
+            foreach (var entry in zip.Entries.Where(w => w.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+            {
+                entry.ExtractToFile(entry.Name);
+                Log.Information("Downloaded dependency {file}.", entry.Name);
+            }
 
-    private static async Task DownloadLibsodiumAsync()
-    {
-        try
-        {
-            using var githubRestClient = new RestClient("https://api.github.com");
-            var resultLibsodium = await DownloadGithubReleaseAsync(
-                githubRestClient,
-                "jedisct1",
-                "libsodium",
-                OperatingSystem.IsWindows() ? ".zip" : ".tar.gz");
-            
-            Log.Information("Sucessfully downladed dependency libsodium.");
+            Log.Information("Done downloading dependencies.");
         }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Could not downlaod libsodium.");
-        }
+        else
+            Log.Information("Running on unsupported operating system. You'll have to handle dependencies yourself.");
     }
 
     private static async Task<bool> DownloadGithubReleaseAsync(
@@ -79,7 +66,7 @@ internal static class DependencyHelper
         if (result == null || result.Length == 0)
             return false;
 
-        await File.WriteAllBytesAsync(gitHubRepo, result);
+        await File.WriteAllBytesAsync(fileToDownload.Name, result);
         return true;
     }
 }
