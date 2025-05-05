@@ -3,6 +3,3 @@ services:
     build:
       context: . # Use the current directory as the build context
       dockerfile: ./Dockerfile
-    environment:
-      - DISCORDBOT:TOKEN=${DISCORD_BOT_TOKEN}
-      - Danbooru:TOKEN=${DANBOORU_TOKEN}

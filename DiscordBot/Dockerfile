@@ -23,7 +23,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
 WORKDIR /app
 
 # Install opus and libsodium
-#RUN apk add --no-cache ffmpeg libsodium opus
+RUN apk add --no-cache ffmpeg libsodium opus
 
 # Copy the published application from the builder stage
 COPY --from=builder /app/publish .
