@@ -2,7 +2,7 @@ services:
   discordbot:
     build:
       context: . # Use the current directory as the build context
-      dockerfile: ./Dockerfile
+      dockerfile: ./DiscordBot/Dockerfile
     environment:
       - DISCORDBOT:TOKEN=${DISCORD_BOT_TOKEN}
       - Danbooru:TOKEN=${DANBOORU_TOKEN}
