@@ -8,3 +8,4 @@ services:
     # It's common practice to use a .env file for secrets like tokens
     environment:
       - DISCORDBOT:TOKEN=${DISCORD_BOT_TOKEN}
+      - Danbooru:TOKEN=${DANBOORU_TOKEN}

@@ -33,12 +33,17 @@ try
         .AddSingleton<IConfiguration>(configuration)
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
-    
+
     if (configuration.GetLogValue("Dependencies:Disable") == null)
         await DependencyHelper.LoadMissingAsync();
 
     DatabaseContext.CreateDefault();
-    
+
+    if (configuration.GetLogValue("Danbooru:Token") is not { } danbooruToken)
+        Log.Warning("No danbooru token has been provided, some functionality won't work.");
+    else
+        DanbooruHelper.ApiKey = danbooruToken;
+
     if (configuration.GetLogValue("DiscordBot:Token") is not { } botTokenValue)
     {
         Log.Warning("No discord token has been provided, stopping application.");
