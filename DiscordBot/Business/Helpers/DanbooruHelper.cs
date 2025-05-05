@@ -8,7 +8,7 @@ namespace DiscordBot.Business.Helpers;
 internal static class DanbooruHelper
 {
     private const string DomainAdress = @"https://danbooru.donmai.us";
-    private const string ApiKey = @"vy25T3FteHYP3Re33UdQ69Nw";
+    internal static string ApiKey;
     private static RestRequest GetLoginRequest(string resource)
                     => new RestRequest(resource)
                         .AddQueryParameter("login", "Akayaaa")
