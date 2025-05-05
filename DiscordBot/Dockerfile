@@ -33,4 +33,5 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 # Set the entry point for the application
-ENTRYPOINT ["dotnet", "DiscordBot.dll"]
+RUN dotnet DiscordBot.dll
+#ENTRYPOINT ["dotnet", "DiscordBot.dll"]
