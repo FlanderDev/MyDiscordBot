@@ -1,24 +1,10 @@
 services:
   discordbot:
     build:
-      context: .
-    restart: unless-stopped
-    init: true
-    depends_on:
-      - database
+      context: . # Use the current directory as the build context
+      dockerfile: Dockerfile # Specify the Dockerfile name (optional if it's named Dockerfile)
+    container_name: discord_bot_app
+    restart: unless-stopped 
+    # It's common practice to use a .env file for secrets like tokens
     environment:
-      - DOTNET_VERSION=9.0
-    volumes:
-      - discordbot_data:/app/data
-  database:
-    image: postgres:latest
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: discordbot
-    volumes:
-      - database_data:/var/lib/postgresql/data
-volumes:
-  discordbot_data:
-  database_data:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
