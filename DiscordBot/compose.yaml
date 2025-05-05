@@ -2,10 +2,6 @@ services:
   discordbot:
     build:
       context: . # Use the current directory as the build context
-      dockerfile: Dockerfile # Specify the Dockerfile name (optional if it's named Dockerfile)
-    container_name: discord_bot_app
-    restart: unless-stopped 
-    # It's common practice to use a .env file for secrets like tokens
     environment:
       - DISCORDBOT:TOKEN=${DISCORD_BOT_TOKEN}
       - Danbooru:TOKEN=${DANBOORU_TOKEN}
