@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS builder
 WORKDIR /app
 
 # Copy the project file and restore dependencies
-COPY --link ./DiscordBot/DiscordBot.csproj ./
+COPY --link ./DiscordBot.csproj ./
 RUN --mount=type=cache,target=/root/.nuget/packages \
     --mount=type=cache,target=/root/.cache/msbuild \
     dotnet restore
@@ -23,7 +23,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
 WORKDIR /app
 
 # Install opus and libsodium
-RUN apk add --no-cache ffmpeg libsodium opus
+#RUN apk add --no-cache ffmpeg libsodium opus
 
 # Copy the published application from the builder stage
 COPY --from=builder /app/publish .
