@@ -11,10 +11,6 @@ using System.Reflection;
 
 try
 {
-    var errorCode = SetRunningDirectory();
-    if (errorCode != null)
-        return errorCode.Value;
-
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Verbose()
         .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
@@ -25,9 +21,13 @@ try
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
     Console.WriteLine("---------TEST-------------");
-    var files = Directory.GetFiles(Environment.SystemDirectory, "*", SearchOption.AllDirectories);
+    var files = Directory.GetFiles(Environment.CurrentDirectory, "*", SearchOption.AllDirectories);
     foreach (var file in files)
         Console.WriteLine(file);
+
+    var dirs = Directory.GetDirectories(Environment.CurrentDirectory, "*", SearchOption.AllDirectories);
+    foreach (var dir in dirs)
+        Console.WriteLine(dir);
 
     var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
     Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
@@ -80,18 +80,4 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
-}
-
-static int? SetRunningDirectory()
-{
-    var runningSpace = Path.Combine(Environment.CurrentDirectory, "RunningSpace");
-    if (!Directory.CreateDirectory(runningSpace).Exists)
-    {
-        Log.Fatal("Invalid running space: '{invalidRunningSpace}'.", runningSpace);
-        return -2;
-    }
-
-    Environment.CurrentDirectory = runningSpace;
-    Log.Information("Running in '{currentDirectory}'.", Environment.CurrentDirectory);
-    return null;
 }
