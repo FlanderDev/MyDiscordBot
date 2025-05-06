@@ -36,9 +36,6 @@ try
         return 100;
     }
 
-    if (configuration.GetLogValue("Dependencies:Disable") == null)
-        await DependencyHelper.LoadMissingAsync();
-
     DatabaseContext.CreateDefault();
 
     if (configuration.GetLogValue("Danbooru:Token") is not { } danbooruToken)

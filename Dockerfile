@@ -24,7 +24,7 @@ FROM base AS final
 
 USER root
 RUN apt-get update 
-RUN apt-get install -y ffmpeg
+RUN apt-get install -y ffmpeg yt-dlp
 
 USER $APP_UID
 WORKDIR /app

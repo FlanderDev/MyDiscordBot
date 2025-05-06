@@ -37,22 +37,22 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
             var message = Context.Message;
             if (!Valid)
             {
-                Log.Information("A non-privilaged user {user} tried to use debug '{text}'.", message.Author.Id, text);
-                await Context.Message.ReplyAsync("You are not a privilaged user.");
+                Log.Information("A non-privileged user {user} tried to use debug '{text}'.", message.Author.Id, text);
+                await Context.Message.ReplyAsync("You are not a privileged user.");
                 return;
             }
 
             Log.Information("Executing debug command '{text}'.", text);
-            using var databasseContext = new DatabaseContext();
+            await using var databaseContext = new DatabaseContext();
             switch (text)
             {
                 case "dbReset":
-                    databasseContext.Database.EnsureDeleted();
-                    databasseContext.Database.EnsureCreated();
+                    await databaseContext.Database.EnsureDeletedAsync();
+                    await databaseContext.Database.EnsureCreatedAsync();
                     await message.ReplyAsync("Recreated database.");
                     break;
 
-                case "addPrivalagedUser":
+                case "addPrivilegedUser":
                     var mentionedUser = message.MentionedUsers.FirstOrDefault();
                     if (mentionedUser == null)
                     {
@@ -63,13 +63,13 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
                     }
 
                     var dbUser = DiscordUser.FromSocketUser(mentionedUser);
-                    databasseContext.DiscordUsers.Add(dbUser);
+                    databaseContext.DiscordUsers.Add(dbUser);
                     Log.Information("User '{user}' has been added.", mentionedUser);
-                    await Context.Message.ReplyAsync($"Saved '{databasseContext.SaveChanges()}' changes.");
+                    await Context.Message.ReplyAsync($"Saved '{databaseContext.SaveChanges()}' changes.");
                     break;
 
                 case "clips":
-                    var audioClips = databasseContext.AudioClips.AsNoTracking().ToArray();
+                    var audioClips = await databaseContext.AudioClips.AsNoTracking().ToArrayAsync();
                     var clipText = string.Join<AudioClip>(Environment.NewLine, audioClips);
                     await Context.Message.ReplyAsync(clipText);
                     break;

@@ -169,11 +169,11 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
     [GeneratedRegex(@"([0-9]\d):([0-9]\d)-([0-9]\d):([0-9]\d)")]
     private static partial Regex TimeSpanMmSs();
 
-    private static Process ExecuteDownload(string argumnets)
+    private static Process ExecuteDownload(string arguments)
         => Process.Start(new ProcessStartInfo
         {
-            FileName = "yt-dlp.exe",
-            Arguments = argumnets,
+            FileName = "yt-dlp",
+            Arguments = arguments,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
