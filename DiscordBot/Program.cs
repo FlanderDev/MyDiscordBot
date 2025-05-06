@@ -20,15 +20,15 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
-    Console.WriteLine("---------TEST-------------");
-    Console.WriteLine(Environment.CurrentDirectory);
-    var files = Directory.GetFiles(Environment.CurrentDirectory, "*", SearchOption.AllDirectories);
-    foreach (var file in files)
-        Console.WriteLine(file);
+    Console.WriteLine("---------START-------------");
+    var split = Environment.GetEnvironmentVariable("PATH").Split(';');
+    foreach (var cw in split)
+        Console.WriteLine(cw);
 
-    var dirs = Directory.GetDirectories(Environment.CurrentDirectory, "*", SearchOption.AllDirectories);
-    foreach (var dir in dirs)
-        Console.WriteLine(dir);
+    Console.WriteLine("######");
+
+    var ffmpeg = FindExePath("ffmpeg") ?? "fuck";
+    Console.WriteLine($"####################{ffmpeg}#");
 
     var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
     Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
@@ -81,4 +81,23 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+static string? FindExePath(string exe)
+{
+    exe = Environment.ExpandEnvironmentVariables(exe);
+    if (File.Exists(exe))
+        return Path.GetFullPath(exe);
+
+    if (Path.GetDirectoryName(exe) != string.Empty)
+        return null;
+
+    foreach (var test in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';'))
+    {
+        var path = test.Trim();
+        if (!string.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, exe)))
+            return Path.GetFullPath(path);
+    }
+
+    return null;
 }
