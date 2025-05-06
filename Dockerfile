@@ -9,7 +9,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 RUN apt-get update 
-RUN apt-get install -y ffmpeg
+RUN apt-get install -y ffmpeg libsodium23 libopus0
 
 COPY ["DiscordBot/DiscordBot.csproj", "DiscordBot/"]
 RUN dotnet restore "./DiscordBot/DiscordBot.csproj"

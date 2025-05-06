@@ -34,6 +34,12 @@ try
         .AddScoped<InaNisBot>()
         .BuildServiceProvider();
 
+    if (configuration.GetLogValue("DiscordBot:Token") is not { } botTokenValue)
+    {
+        Log.Warning("No discord token has been provided, stopping application.");
+        return 100;
+    }
+
     if (configuration.GetLogValue("Dependencies:Disable") == null)
         await DependencyHelper.LoadMissingAsync();
 
@@ -43,12 +49,6 @@ try
         Log.Warning("No danbooru token has been provided, some functionality won't work.");
     else
         DanbooruHelper.ApiKey = danbooruToken;
-
-    if (configuration.GetLogValue("DiscordBot:Token") is not { } botTokenValue)
-    {
-        Log.Warning("No discord token has been provided, stopping application.");
-        return 100;
-    }
 
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
     await testingBot.StartAsync(serviceProvider, botTokenValue);

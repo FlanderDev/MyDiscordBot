@@ -3,3 +3,6 @@ services:
     build:
       context: . # Use the current directory as the build context
       dockerfile: Dockerfile
+    environment:
+      - DiscordBot:Token=${DISCORD_TOKEN}
+      - Danbooru:Token=${DANBOORU_TOKEN}
