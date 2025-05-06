@@ -24,6 +24,6 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 
-RUN sudo apt-get update && sudo apt-get install -y ffmpeg libsodium opus
+RUN apt-get update && apt-get install -y ffmpeg libsodium opus
 
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
