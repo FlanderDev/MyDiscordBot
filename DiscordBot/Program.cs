@@ -21,16 +21,11 @@ try
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
     Console.WriteLine("---------START-------------");
-    var split = Environment.GetEnvironmentVariable("PATH").Split(';');
+    var split = Environment.GetEnvironmentVariable("PATH").Split(':');
     foreach (var cw in split)
         Console.WriteLine(cw);
 
-    Console.WriteLine("######");
-
-    var ffmpeg = FindExePath("ffmpeg") ?? "fuck";
-    Console.WriteLine($"####################{ffmpeg}#");
-
-    var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
+    var result = Process.Start("type", "ffmpeg").StandardOutput.ReadToEnd();
     Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
     Console.WriteLine("---------DONE-------------");
 
