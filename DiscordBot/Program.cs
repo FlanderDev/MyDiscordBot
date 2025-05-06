@@ -22,12 +22,16 @@ try
         .CreateLogger();
     Log.Information("Initialized logging.");
 
-   AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+    AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
-   Console.WriteLine("---------TEST-------------");
-   var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
-   Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
-   Console.WriteLine("---------DONE-------------");
+    Console.WriteLine("---------TEST-------------");
+    var files = Directory.GetFiles(Environment.CurrentDirectory, "*", SearchOption.AllDirectories);
+    foreach (var file in files)
+        Console.WriteLine(file);
+
+    var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
+    Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
+    Console.WriteLine("---------DONE-------------");
 
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
