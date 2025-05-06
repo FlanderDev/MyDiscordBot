@@ -20,6 +20,11 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
+    var process = Process.Start("which", "ffmpeg");
+    Console.WriteLine(process.StandardOutput.ReadToEnd());
+    Console.WriteLine(process.StandardError.ReadToEnd());
+    Console.WriteLine("--XX--END--X--");
+
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables()
