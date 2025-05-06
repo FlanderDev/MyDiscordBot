@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics;
+using System.Net.Sockets;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -36,9 +37,6 @@ public sealed class InaNisBot
     {
         try
         {
-            var botStillStarting = new CancellationTokenSource();
-            DiscordSocketClient.Ready += botStillStarting.CancelAsync;
-
             await Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
 
             if (string.IsNullOrWhiteSpace(botToken))
@@ -46,32 +44,28 @@ public sealed class InaNisBot
                 Log.Error("Invalid token.");
                 return false;
             }
+
+            var botBooting = new TaskCompletionSource();
+            DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult);
             await DiscordSocketClient.LoginAsync(TokenType.Bot, botToken);
             await DiscordSocketClient.StartAsync();
 
             Log.Information("Bot starting...");
+            var stopwatch = Stopwatch.StartNew();
+            await botBooting.Task;
 
-            while (!botStillStarting.IsCancellationRequested)
-            {
-                Log.Verbose("Waiting...");
-                await Task.Delay(100, botStillStarting.Token);
-            }
-
-            //_ = DiscordSocketClient
-            //    .GetChannelAsync(1270659363132145796)
-            //    .AsTask()
-            //    .ContinueWith(async t =>
-            //    {
-            //        if (t.Result is ITextChannel textChannel)
-            //            await textChannel.SendMessageAsync("https://tenor.com/view/pillar-men-awaken-my-masters-awaken-jojos-bizarre-adventure-jjba-gif-19344086");
-            //    });
+            stopwatch.Stop();
+            Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
 
-            // 238725440649428992
-
-            var user = await DiscordSocketClient.GetUserAsync(229720939078615040);
-            await user.SendMessageAsync("AWAKEN MY MASTER!");
-            await user.SendMessageAsync("https://tenor.com/view/pillar-men-awaken-my-masters-awaken-jojos-bizarre-adventure-jjba-gif-19344086");
+            _ = DiscordSocketClient
+                .GetChannelAsync(1270659363132145796)
+                .AsTask()
+                .ContinueWith(async t =>
+                {
+                    if (t.Result is ITextChannel textChannel)
+                        await textChannel.SendMessageAsync("Ready to fuck shit up!");
+                });
 
             return true;
         }
