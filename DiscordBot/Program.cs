@@ -11,12 +11,6 @@ using System.Reflection;
 
 try
 {
-    Console.WriteLine("---------TEST-------------");
-    var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
-    Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
-    Console.WriteLine("---------DONE-------------");
-
-
     var errorCode = SetRunningDirectory();
     if (errorCode != null)
         return errorCode.Value;
@@ -28,7 +22,12 @@ try
         .CreateLogger();
     Log.Information("Initialized logging.");
 
-    AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+   AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+
+   Console.WriteLine("---------TEST-------------");
+   var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
+   Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
+   Console.WriteLine("---------DONE-------------");
 
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
