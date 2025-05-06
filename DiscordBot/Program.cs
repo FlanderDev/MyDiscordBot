@@ -1,4 +1,5 @@
-﻿using DiscordBot.Business.Bots;
+﻿using System.Diagnostics;
+using DiscordBot.Business.Bots;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Database;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,12 @@ using System.Reflection;
 
 try
 {
+    Console.WriteLine("---------TEST-------------");
+    var result = Process.Start("ffmpeg", "-h").StandardOutput.ReadToEnd();
+    Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
+    Console.WriteLine("---------DONE-------------");
+
+
     var errorCode = SetRunningDirectory();
     if (errorCode != null)
         return errorCode.Value;
