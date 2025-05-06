@@ -2,7 +2,7 @@
 using Discord.Commands;
 using Serilog;
 
-namespace DiscordBot.Commands;
+namespace DiscordBot.Business.Commands;
 
 public sealed class ManageSlashCommands : ModuleBase<SocketCommandContext>
 {
