@@ -1,10 +1,12 @@
-﻿using Discord;
+﻿using System.Net.Sockets;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Reflection;
+using DiscordBot.Business.Commands;
 
 namespace DiscordBot.Business.Bots;
 
@@ -34,6 +36,9 @@ public sealed class InaNisBot
     {
         try
         {
+            var botStillStarting = new CancellationTokenSource();
+            DiscordSocketClient.Ready += botStillStarting.CancelAsync;
+
             await Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
 
             if (string.IsNullOrWhiteSpace(botToken))
@@ -44,7 +49,29 @@ public sealed class InaNisBot
             await DiscordSocketClient.LoginAsync(TokenType.Bot, botToken);
             await DiscordSocketClient.StartAsync();
 
-            Log.Information("Bot Started.");
+            Log.Information("Bot starting...");
+
+            while (!botStillStarting.IsCancellationRequested)
+            {
+                Log.Verbose("Waiting...");
+                await Task.Delay(100, botStillStarting.Token);
+            }
+
+            //_ = DiscordSocketClient
+            //    .GetChannelAsync(1270659363132145796)
+            //    .AsTask()
+            //    .ContinueWith(async t =>
+            //    {
+            //        if (t.Result is ITextChannel textChannel)
+            //            await textChannel.SendMessageAsync("https://tenor.com/view/pillar-men-awaken-my-masters-awaken-jojos-bizarre-adventure-jjba-gif-19344086");
+            //    });
+
+
+            // 238725440649428992
+
+            var user = await DiscordSocketClient.GetUserAsync(229720939078615040);
+            await user.SendMessageAsync("AWAKEN MY MASTER!");
+            await user.SendMessageAsync("https://tenor.com/view/pillar-men-awaken-my-masters-awaken-jojos-bizarre-adventure-jjba-gif-19344086");
 
             return true;
         }

@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 
-namespace DiscordBot.Commands;
+namespace DiscordBot.Business.Commands;
 
 internal class ManualCommands(SocketUserMessage socketUserMessage)
 {

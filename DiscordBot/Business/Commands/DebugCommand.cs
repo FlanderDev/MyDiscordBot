@@ -1,12 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
-using DiscordBot.Business;
 using DiscordBot.Database;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace DiscordBot.Commands;
+namespace DiscordBot.Business.Commands;
 
 public sealed class DebugCommand : ModuleBase<SocketCommandContext>
 {

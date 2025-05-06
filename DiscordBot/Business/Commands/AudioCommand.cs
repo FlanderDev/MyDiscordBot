@@ -4,7 +4,7 @@ using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
 using Serilog;
 
-namespace DiscordBot.Commands;
+namespace DiscordBot.Business.Commands;
 
 public sealed class AudioCommand : ModuleBase<SocketCommandContext>
 {

@@ -2,7 +2,7 @@
 using DiscordBot.Business.Helpers;
 using Serilog;
 
-namespace DiscordBot.Commands;
+namespace DiscordBot.Business.Commands;
 
 public sealed class TextCommand : ModuleBase<SocketCommandContext>
 {
