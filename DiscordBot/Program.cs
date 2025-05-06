@@ -20,17 +20,12 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
-    var processStartInfo = new ProcessStartInfo()
-    {
-        FileName = "which",
-        Arguments = "ffmpeg",
-        RedirectStandardError = true,
-        RedirectStandardOutput = true,
-    };
-    var process = Process.Start(processStartInfo) ?? throw new Exception("SUCK COCK");
-    Console.WriteLine(process.StandardOutput.ReadToEnd());
-    Console.WriteLine(process.StandardError.ReadToEnd());
-    Console.WriteLine("--XX--END--X--");
+    var aa = File.Exists("/usr/bin/ffmpeg");
+    Console.WriteLine(aa ? "FUCK YES <3" : "FUCK OFF!!!");
+    foreach (var VARIABLE in Directory.EnumerateFiles("/usr/bin", "*", SearchOption.AllDirectories))
+        Console.WriteLine(VARIABLE);
+
+    Console.WriteLine("---------------------");
 
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)

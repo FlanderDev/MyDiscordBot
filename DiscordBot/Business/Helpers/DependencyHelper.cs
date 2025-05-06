@@ -14,7 +14,7 @@ internal static class DependencyHelper
         if (OperatingSystem.IsLinux())
         {
             Log.Verbose("You're running this application on linux. " +
-                "The dependencies should have been installed by the docekr image. " +
+                "The dependencies should have been installed by the docker image. " +
                 "If you encounter errors try adding them manually: {one} {two} {three}", "FFMPEG", "opus", "libsodium");
         }
         else if (OperatingSystem.IsWindows())

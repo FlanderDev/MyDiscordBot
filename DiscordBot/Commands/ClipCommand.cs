@@ -172,10 +172,10 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
     private static Process ExecuteDownload(string argumnets)
         => Process.Start(new ProcessStartInfo
         {
-            FileName = @"yt-dlp.exe",
+            FileName = "yt-dlp.exe",
             Arguments = argumnets,
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-        }) ?? throw new Exception("Could not initialize ffmpeg process.");
+        }) ?? throw new Exception("Could not initialize yt-dlp process.");
 }
