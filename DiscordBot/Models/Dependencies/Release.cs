@@ -20,7 +20,7 @@ public sealed class Release
 
     [JsonPropertyName("target_commitish")] public string TargetCommitish { get; set; } = string.Empty;
 
-    [JsonPropertyName("name")] public string Name { get; set; }= string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 
     [JsonPropertyName("draft")] public bool? Draft { get; set; }
 
@@ -32,11 +32,11 @@ public sealed class Release
 
     [JsonPropertyName("assets")] public List<Asset> Assets { get; set; } = [];
 
-    [JsonPropertyName("tarball_url")] public string TarballUrl { get; set; }= string.Empty;
+    [JsonPropertyName("tarball_url")] public string TarballUrl { get; set; } = string.Empty;
 
-    [JsonPropertyName("zipball_url")] public string ZipballUrl { get; set; }= string.Empty;
+    [JsonPropertyName("zipball_url")] public string ZipballUrl { get; set; } = string.Empty;
 
-    [JsonPropertyName("body")] public string Body { get; set; }= string.Empty;
+    [JsonPropertyName("body")] public string Body { get; set; } = string.Empty;
 
     [JsonPropertyName("mentions_count")] public int? MentionsCount { get; set; }
 }

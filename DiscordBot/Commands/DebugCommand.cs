@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using DiscordBot.Business;
 using DiscordBot.Database;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,23 @@ namespace DiscordBot.Commands;
 public sealed class DebugCommand : ModuleBase<SocketCommandContext>
 {
     internal bool Valid => new DatabaseContext().DiscordUsers.Any(a => Context.Message.Author.Id == a.Id);
+
+    [Command("stop")]
+    public static async Task StopAsync()
+    {
+        try
+        {
+            if (!Common.CancellationTokenSource.IsCancellationRequested)
+            {
+                Log.Verbose("Canceling current action.");
+                await Common.CancellationTokenSource.CancelAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error while stopping");
+        }
+    }
 
     [Command("debug")]
     public async Task ExecuteAsync([Remainder] string text)

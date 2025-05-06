@@ -32,8 +32,8 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
 
     private async Task FuckTwitterAsync()
     {
-        string[] TwitterUrls = ["x.com", "twitter.com", "fxtwitter.com"];
-        if (!TwitterUrls.Any(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase)))
+        string[] twitterUrls = ["x.com", "twitter.com", "fxtwitter.com"];
+        if (!twitterUrls.Any(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase)))
             return;
 
         await socketUserMessage.ReplyAsync("https://tenor.com/view/shitter-alert-cake-gif-19194039");

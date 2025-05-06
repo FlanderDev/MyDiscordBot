@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using DiscordBot.Business.Bots;
+﻿using DiscordBot.Business.Bots;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Database;
 using Microsoft.Extensions.Configuration;

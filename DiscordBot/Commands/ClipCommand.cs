@@ -85,7 +85,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
 
                 if (string.IsNullOrWhiteSpace(progressLine))
                     continue;
-                
+
                 queue.Enqueue(progressLine);
                 await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}{string.Join(Environment.NewLine, [.. queue])}");
             }

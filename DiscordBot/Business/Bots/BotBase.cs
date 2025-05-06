@@ -11,11 +11,11 @@ internal abstract class BotBase
 {
     internal DiscordSocketClient DiscordSocketClient { get; }
     internal CommandService Commands { get; }
-    internal IServiceProvider ServiceProvider { get; private set; }
+    internal IServiceProvider ServiceProvider { get; }
     internal string? Name { get; private set; }
-    internal char? Prefix { get; private set; }
+    internal char? Prefix { get; }
 
-    public BotBase(IServiceProvider serviceProvider, char? prefix = null)
+    protected BotBase(IServiceProvider serviceProvider, char? prefix = null)
     {
         ServiceProvider = serviceProvider;
         Prefix = prefix;

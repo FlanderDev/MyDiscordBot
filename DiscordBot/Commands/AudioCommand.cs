@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using DiscordBot.Business;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
 using Serilog;
@@ -20,8 +21,12 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
         var audioClient = await voiceChannel.ConnectAsync();
         using var audioHelper = new DiscordAudioHelper(audioClient);
 
+        var cancelToken = Common.SetNewCancelSource();
         for (var i = 12; i < 600; i++)
         {
+            if (cancelToken.IsCancellationRequested)
+                break;
+
             var araUrl = $"https://faunaraara.com/sounds/ara-{i}.mp3";
             var audioResource = await FileManager.GetLocalResourceOrDownloadAsync($"ara-{i}.mp3", araUrl);
             if (audioResource == null)

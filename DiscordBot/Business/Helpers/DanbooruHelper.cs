@@ -7,8 +7,8 @@ namespace DiscordBot.Business.Helpers;
 
 internal static class DanbooruHelper
 {
-    private const string DomainAdress = @"https://danbooru.donmai.us";
-    internal static string ApiKey;
+    private const string DomainAddress = "https://danbooru.donmai.us";
+    internal static string ApiKey = string.Empty;
     private static RestRequest GetLoginRequest(string resource)
                     => new RestRequest(resource)
                         .AddQueryParameter("login", "Akayaaa")
@@ -24,7 +24,7 @@ internal static class DanbooruHelper
                 throw new Exception("Cannot search for more than six tags.");
 
             var parameterTags = string.Join(string.Empty, tags);
-            var restClient = new RestClient(DomainAdress);
+            var restClient = new RestClient(DomainAddress);
             var request = GetLoginRequest("/posts.json")
                          .AddQueryParameter("tags", parameterTags, false);
 
