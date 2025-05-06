@@ -29,5 +29,5 @@ RUN dotnet publish "./DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
+RUN export PATH="/usr/bin:$PATH"
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
