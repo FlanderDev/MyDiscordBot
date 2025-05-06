@@ -20,7 +20,14 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
-    var process = Process.Start("which", "ffmpeg");
+    var processStartInfo = new ProcessStartInfo()
+    {
+        FileName = "which",
+        Arguments = "ffmpeg",
+        RedirectStandardError = true,
+        RedirectStandardOutput = true,
+    };
+    var process = Process.Start(processStartInfo) ?? throw new Exception("SUCK COCK");
     Console.WriteLine(process.StandardOutput.ReadToEnd());
     Console.WriteLine(process.StandardError.ReadToEnd());
     Console.WriteLine("--XX--END--X--");
