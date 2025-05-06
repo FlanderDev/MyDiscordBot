@@ -10,7 +10,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
     [Command("araAll", RunMode = RunMode.Async)]
     public async Task AraAllAsync()
     {
-        var voiceChannel = DiscordExtensions.GetVoiceChannel(this);
+        var voiceChannel = this.GetVoiceChannel();
         if (voiceChannel == null)
         {
             await Context.Channel.SendMessageAsync("Could not join your voice-channel, gomenasorry.");
@@ -22,9 +22,8 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
 
         for (var i = 12; i < 600; i++)
         {
-            //await audioHelper.PlayAudioAsync(@$"E:\aras\ara-{num}.mp3");
-            var araUrl = @$"https://faunaraara.com/sounds/ara-{i}.mp3";
-            var audioResource = await FileManager.GetLocalReosurceOrDownloadAsync($"ara-{i}.mp3", araUrl);
+            var araUrl = $"https://faunaraara.com/sounds/ara-{i}.mp3";
+            var audioResource = await FileManager.GetLocalResourceOrDownloadAsync($"ara-{i}.mp3", araUrl);
             if (audioResource == null)
             {
                 await Context.Channel.SendMessageAsync("Your not in a VC, gomenasorry.");
@@ -45,7 +44,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
             return;
 
         Log.Debug("Executing {method}.", nameof(AraAllAsync));
-        var voiceChannel = DiscordExtensions.GetVoiceChannel(this);
+        var voiceChannel = this.GetVoiceChannel();
         try
         {
             var split = text.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -75,7 +74,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
                 if (araId == -1)
                     _ = Context.Channel.SendMessageAsync($"[Ara-{num}]({araUrl})");
 
-                var audioResource = await FileManager.GetLocalReosurceOrDownloadAsync($"ara-{num}.mp3", araUrl);
+                var audioResource = await FileManager.GetLocalResourceOrDownloadAsync($"ara-{num}.mp3", araUrl);
                 await audioHelper.PlayAudioAsync(araUrl);
 
                 await Task.Delay(1000);

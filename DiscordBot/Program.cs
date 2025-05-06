@@ -20,13 +20,6 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
-    var aa = File.Exists("/usr/bin/ffmpeg");
-    Console.WriteLine(aa ? "FUCK YES <3" : "FUCK OFF!!!");
-    foreach (var VARIABLE in Directory.EnumerateFiles("/usr/bin", "*", SearchOption.AllDirectories))
-        Console.WriteLine(VARIABLE);
-
-    Console.WriteLine("---------------------");
-
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables()
