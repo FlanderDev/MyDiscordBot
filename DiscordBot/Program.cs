@@ -20,15 +20,6 @@ try
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
-    Console.WriteLine("---------START-------------");
-    var split = Environment.GetEnvironmentVariable("PATH").Split(':');
-    foreach (var cw in split)
-        Console.WriteLine(cw);
-
-    var result = Process.Start("type", "ffmpeg").StandardOutput.ReadToEnd();
-    Console.WriteLine(string.IsNullOrWhiteSpace(result) ? "FUCK" : result);
-    Console.WriteLine("---------DONE-------------");
-
     var configuration = new ConfigurationBuilder()
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables()
@@ -76,23 +67,4 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
-}
-
-static string? FindExePath(string exe)
-{
-    exe = Environment.ExpandEnvironmentVariables(exe);
-    if (File.Exists(exe))
-        return Path.GetFullPath(exe);
-
-    if (Path.GetDirectoryName(exe) != string.Empty)
-        return null;
-
-    foreach (var test in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';'))
-    {
-        var path = test.Trim();
-        if (!string.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, exe)))
-            return Path.GetFullPath(path);
-    }
-
-    return null;
 }
