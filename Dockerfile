@@ -28,5 +28,5 @@ RUN dotnet publish "./DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN ln -s "$(find /usr/bin/ -type f -name 'ffmpeg' | head -n 1)" ffmpeg
+#RUN ln -s "$(find /usr/bin/ -type f -name 'ffmpeg' | head -n 1)" ffmpeg
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
