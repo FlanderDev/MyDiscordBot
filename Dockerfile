@@ -8,11 +8,11 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-RUN apt-get update 
-RUN apt-get install -y ffmpeg libopus-dev libsodium-dev #libsodium23 libopus0
-RUN ln -s "$(find /usr/bin/ -type f -name 'ffmpeg' | head -n 1)" /app/ffmpeg
-RUN ln -s "$(find /usr/lib/ -type f -name 'libopus.so*' | head -n 1)" /app/libopus.so
-RUN ln -s "$(find /usr/lib/ -type f -name 'libsodium.so*' | head -n 1)" /app/libsodium.so
+#RUN apt-get update 
+#RUN apt-get install -y ffmpeg libopus-dev libsodium-dev #libsodium23 libopus0
+#RUN ln -s "$(find /usr/bin/ -type f -name 'ffmpeg' | head -n 1)" /app/ffmpeg
+#RUN ln -s "$(find /usr/lib/ -type f -name 'libopus.so*' | head -n 1)" /app/libopus.so
+#RUN ln -s "$(find /usr/lib/ -type f -name 'libsodium.so*' | head -n 1)" /app/libsodium.so
 
 COPY ["DiscordBot/DiscordBot.csproj", "DiscordBot/"]
 RUN dotnet restore "./DiscordBot/DiscordBot.csproj"
