@@ -21,10 +21,12 @@ RUN dotnet publish "./DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
 
+USER root
 RUN apt-get update 
 RUN apt-get install -y ffmpeg
 
+USER $APP_UID
+WORKDIR /app
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
