@@ -10,8 +10,6 @@ WORKDIR /src
 
 RUN apt-get update 
 RUN apt-get install -y ffmpeg #libopus-dev libsodium-dev #libsodium23 libopus0
-RUN mkdir -p /app/ffmpeg
-RUN ln -s "$(find /usr/bin/ -type f -name 'ffmpeg' | head -n 1)" /app/ffmpeg
 #RUN ln -s "$(find /usr/lib/ -type f -name 'libopus.so*' | head -n 1)" /app/libopus.so
 #RUN ln -s "$(find /usr/lib/ -type f -name 'libsodium.so*' | head -n 1)" /app/libsodium.so
 
@@ -30,4 +28,5 @@ RUN dotnet publish "./DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN ln -s "$(find /usr/bin/ -type f -name 'ffmpeg' | head -n 1)" ffmpeg
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
