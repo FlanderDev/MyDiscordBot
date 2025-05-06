@@ -23,6 +23,6 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-RUN apk add --no-cache ffmpeg libsodium opus
+RUN "apk add --no-cache ffmpeg libsodium opus"
 
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
