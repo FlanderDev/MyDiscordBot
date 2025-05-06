@@ -25,7 +25,7 @@ try
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
 
     Console.WriteLine("---------TEST-------------");
-    var files = Directory.GetFiles(Environment.CurrentDirectory, "*", SearchOption.AllDirectories);
+    var files = Directory.GetFiles(Environment.SystemDirectory, "*", SearchOption.AllDirectories);
     foreach (var file in files)
         Console.WriteLine(file);
 
