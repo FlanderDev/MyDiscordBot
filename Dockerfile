@@ -1,36 +1,28 @@
-# syntax=docker/dockerfile:1
-
-ARG DOTNET_VERSION=9.0
-
-# Stage 1: Build the application
-FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS builder
+# This stage is used when running from VS in fast mode (Default for Debug configuration)
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS base
+USER $APP_UID
 WORKDIR /app
 
-# Copy the project file and restore dependencies
-COPY --link ./DiscordBot.csproj ./
-RUN --mount=type=cache,target=/root/.nuget/packages \
-    --mount=type=cache,target=/root/.cache/msbuild \
-    dotnet restore
+# This stage is used to build the service project
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["DiscordBot/DiscordBot.csproj", "DiscordBot/"]
+RUN dotnet restore "./DiscordBot/DiscordBot.csproj"
+COPY . .
+WORKDIR "/src/DiscordBot"
+RUN dotnet build "./DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Copy the rest of the application source code
-COPY --link . ./
+# This stage is used to publish the service project to be copied to the final stage
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./DiscordBot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Build and publish the application
-RUN dotnet publish -c Release -o /app/publish
-
-# Stage 2: Create the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
+# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+FROM base AS final
 WORKDIR /app
+COPY --from=publish /app/publish .
 
-# Install opus and libsodium
 RUN apk add --no-cache ffmpeg libsodium opus
 
-# Copy the published application from the builder stage
-COPY --from=builder /app/publish .
-
-# Create a non-root user for security
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
-
-# Set the entry point for the application
 ENTRYPOINT ["dotnet", "DiscordBot.dll"]
