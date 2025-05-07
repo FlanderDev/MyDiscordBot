@@ -38,7 +38,7 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
             return;
 
         var newText = socketUserMessage.CleanContent.Replace(match, "fxtwitter.com");
-        await socketUserMessage.DeleteAsync();
         await socketUserMessage.ReplyAsync($"Replacing link in post from user '{socketUserMessage.Author.GlobalName}':{Environment.NewLine}{newText}");
+        await socketUserMessage.DeleteAsync();
     }
 }
