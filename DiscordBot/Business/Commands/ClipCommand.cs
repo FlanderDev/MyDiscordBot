@@ -1,97 +1,65 @@
-﻿using Discord;
+﻿using System.Text.RegularExpressions;
+using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Database;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using System.Diagnostics;
-using System.Text;
-using System.Text.RegularExpressions;
 
-namespace DiscordBot.Commands;
+namespace DiscordBot.Business.Commands;
 
 public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
 {
-    private static bool InUse = false;
-
     //TODO: Add logging
     [Command("!clip")]
     public async Task CreateClipAsync(params string[] data)
     {
-        IUserMessage? sendMessage = null;
         try
         {
-            if (InUse)
-            {
-                sendMessage = await Context.Message.ReplyAsync("Clip is currently in use. Please wait.");
-                return;
-            }
+            string? url = null;
+            string? callCode = null;
+            TimeSpan? start = null;
+            TimeSpan? end = null;
 
-            if (data.Length < 2)
+            if (data.Length == 0)
             {
                 Log.Verbose("Message has not enough parts.");
-                sendMessage = await Context.Message.ReplyAsync("Invalid usage, correct: 'clip {url} [callCode] {timeFrame}'.");
+                await Context.Message.ReplyAsync("Invalid usage, correct: 'clip {url} [callCode] {from} {to}'.");
                 return;
             }
 
-            var clipDownloadArguments = new StringBuilder("-x --audio-format mp3 --audio-quality 0");
+            if (data.Length > 0)
+                url = Uri.IsWellFormedUriString(data[0], UriKind.Absolute) ? data[0] : null;
+            if (data.Length > 1)
+                callCode = data[1];
             if (data.Length > 2)
+                start = TimeSpan.TryParse(data[2], out var value) ? value : null;
+            if (data.Length > 3)
+                end = TimeSpan.TryParse(data[3], out var value) ? value : null;
+
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(callCode))
             {
-                var match = TimeSpanMmSs().Match(data[2]);
-                if (!match.Success)
-                {
-                    sendMessage = await Context.Message.ReplyAsync($"Invalid time-stamp.");
-                    return;
-                }
-                clipDownloadArguments.Append($" --download-sections *{match.Value}");
+                Log.Verbose("Call code or url is invalid: '{callCode}' '{url}'", callCode, url);
+                await Context.Message.ReplyAsync("Invalid usage, correct: 'clip {url} {callCode} [from] [to]'.");
+                return;
             }
 
             var context = new DatabaseContext();
-            var callCode = data[1].Trim('"');
             var callCodeAlreadyExists = await context.AudioClips.AsNoTracking().AnyAsync(a => a.CallCode.Equals(callCode));
             if (callCodeAlreadyExists)
             {
-                sendMessage = await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
+                await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
                 return;
             }
 
-            var directory = Directory.CreateDirectory("ClipDownloads");
-            var fileName = $"{Context.Message.Author.GlobalName}_{Guid.NewGuid()}.mp3";
-            var filePath = Path.Combine(directory.FullName, fileName);
-            clipDownloadArguments.Append($" -o {filePath}");
-            clipDownloadArguments.Append($" {data[0]}");
-
-
-            var arguments = clipDownloadArguments.ToString();
-            var message = await Context.Message.ReplyAsync($"Starting Download for '{callCode}'.");
-            var downloadProcess = ExecuteDownload(arguments);
-#if DEBUG
-            var titleLine = await downloadProcess.StandardOutput.ReadLineAsync();
-            if (string.IsNullOrWhiteSpace(titleLine))
+            await Context.Message.ReplyAsync($"Starting Download for '{callCode}'.");
+            var filePath = await DownloadHelper.DownloadYouTubeMediaAsync(false, data[0], Context.User.GlobalName, start, end);
+            if (filePath == null)
             {
-                var errorText = await downloadProcess.StandardError.ReadToEndAsync();
-                await message.ModifyAsync(mp => mp.Content = $"{errorText}{Environment.NewLine}");
+                await Context.Message.ReplyAsync("Could not create clip.");
                 return;
             }
-
-            await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}");
-
-            var queue = new Queue<string>(6);
-            while (await downloadProcess.StandardOutput.ReadLineAsync() is { } progressLine)
-            {
-                if (queue.Count > 6)
-                    queue.Dequeue();
-
-                if (string.IsNullOrWhiteSpace(progressLine))
-                    continue;
-
-                queue.Enqueue(progressLine);
-                await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}{string.Join(Environment.NewLine, [.. queue])}");
-            }
-
-            await message.ModifyAsync(mp => mp.Content = $"{titleLine}{Environment.NewLine}");
-#endif
 
             var audioClip = new AudioClip()
             {
@@ -99,26 +67,15 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 CallCode = callCode,
                 DiscordUserId = Context.User.Id,
             };
-            await context.AudioClips.AddAsync(audioClip);
+            context.AudioClips.Add(audioClip);
             await context.SaveChangesAsync();
 
-            sendMessage = await Context.Message.ReplyAsync($"Successfully added new clip, with call code '{callCode}'.");
+            await Context.Message.ReplyAsync($"Successfully added new clip, with call code '{callCode}'.");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Unexpected clip error.");
-            sendMessage = await Context.Message.ReplyAsync("An error occured, aborted.");
-        }
-        finally
-        {
-            await Context.Message.DeleteAsync();
-            InUse = false;
-            if (sendMessage != null)
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(10000);
-                    await sendMessage.DeleteAsync();
-                });
+            await Context.Message.ReplyAsync("An error occured, aborted.");
         }
     }
 
@@ -168,14 +125,4 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
 
     [GeneratedRegex(@"([0-9]\d):([0-9]\d)-([0-9]\d):([0-9]\d)")]
     private static partial Regex TimeSpanMmSs();
-
-    private static Process ExecuteDownload(string arguments)
-        => Process.Start(new ProcessStartInfo
-        {
-            FileName = "yt-dlp",
-            Arguments = arguments,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        }) ?? throw new Exception("Could not initialize yt-dlp process.");
 }

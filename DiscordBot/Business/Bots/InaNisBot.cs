@@ -3,11 +3,12 @@ using System.Net.Sockets;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Reflection;
 using DiscordBot.Business.Commands;
+using Discord.Audio;
+using DiscordBot.Business.Helpers;
 
 namespace DiscordBot.Business.Bots;
 
@@ -57,6 +58,16 @@ public sealed class InaNisBot
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
+
+            DiscordSocketClient.UserVoiceStateUpdated += async (user, before, after) =>
+            {
+                if (after.VoiceChannel == null || user.IsBot)
+                    return;
+
+                var channel = await after.VoiceChannel.ConnectAsync();
+                using var audioHelper = new DiscordAudioHelper(channel);
+                await audioHelper.PlayAudioAsync("\"C:\\Users\\Felix Kreuzberger\\_myFiles\\tools\\ytdlp\\jjba.webm\"");
+            };
 
             _ = DiscordSocketClient
                 .GetChannelAsync(1270659363132145796)

@@ -32,12 +32,13 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
 
     private async Task FuckTwitterAsync()
     {
-        string[] twitterUrls = ["x.com", "twitter.com", "fxtwitter.com"];
-        if (!twitterUrls.Any(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase)))
+        string[] twitterUrls = ["fxtwitter.com", "x.com", "twitter.com"];
+        var match = twitterUrls.FirstOrDefault(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase));
+        if (match == null)
             return;
 
-        await socketUserMessage.ReplyAsync("https://tenor.com/view/shitter-alert-cake-gif-19194039");
-        await socketUserMessage.Author.SendMessageAsync($"We don't support twitter because of it's CEO. Inform yourself:{Environment.NewLine}https://en.wikipedia.org/wiki/Elon_Musk#Accusations_of_antisemitism");
+        var newText = socketUserMessage.CleanContent.Replace(match, "fxtwitter.com");
         await socketUserMessage.DeleteAsync();
+        await socketUserMessage.ReplyAsync($"Replacing link in post from user '{socketUserMessage.Author.GlobalName}':{Environment.NewLine}{newText}");
     }
 }
