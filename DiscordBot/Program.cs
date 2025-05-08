@@ -46,13 +46,18 @@ try
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
     await testingBot.StartAsync(serviceProvider, botTokenValue);
 
+    AppDomain.CurrentDomain.ProcessExit += async (o, e) =>
+    {
+        Console.WriteLine("Shutdown received!");
+        await (testingBot.DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^") ?? Task.CompletedTask);
+        await testingBot.StopAsync();
+    };
+
     Log.Verbose("ready and waiting...");
     await Task.Delay(Timeout.Infinite);
 
-    Log.Information("Shutting down...");
+    Log.Warning("Shutting down by passing infinity. Yes really!");
     await testingBot.StopAsync();
-
-    Log.Information("Ran to completion.");
     return 0;
 }
 catch (Exception ex)

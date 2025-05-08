@@ -1,5 +1,4 @@
 ﻿using Discord.Commands;
-using DiscordBot.Business;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Business.Manager;
 using Serilog;

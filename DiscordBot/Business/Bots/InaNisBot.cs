@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Net.Sockets;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -7,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Reflection;
 using DiscordBot.Business.Commands;
-using Discord.Audio;
-using DiscordBot.Business.Helpers;
 
 namespace DiscordBot.Business.Bots;
 
@@ -18,6 +15,8 @@ public sealed class InaNisBot
     internal CommandService Commands { get; }
     internal IServiceProvider ServiceProvider { get; private set; }
     internal char? Prefix { get; private set; }
+
+    internal ITextChannel? DebugChannel;
 
     public InaNisBot(IServiceProvider serviceProvider, char? prefix = null)
     {
@@ -58,10 +57,11 @@ public sealed class InaNisBot
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
-            _ = DiscordSocketClient
-                .GetChannelAsync(1270659363132145796)
-                .AsTask()
-                .ContinueWith(t => (t.Result as ITextChannel)?.SendMessageAsync( $"It's {DateTime.Now:T} and I'm ready to fuck shit up!"));
+            if (await DiscordSocketClient.GetChannelAsync(1270659363132145796) is ITextChannel textChannel)
+            {
+                DebugChannel = textChannel;
+                await textChannel.SendMessageAsync( $"It's {DateTime.Now:T} and I'm ready to fuck shit up!");
+            }
 
             return true;
         }
@@ -82,7 +82,7 @@ public sealed class InaNisBot
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Could not start bot.");
+            Log.Error(ex, "Could not stop the bot.");
             return false;
         }
     }

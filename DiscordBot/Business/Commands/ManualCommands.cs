@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 
 namespace DiscordBot.Business.Commands;
