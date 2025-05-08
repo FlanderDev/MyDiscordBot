@@ -46,18 +46,14 @@ try
     var testingBot = serviceProvider.GetRequiredService<InaNisBot>();
     await testingBot.StartAsync(serviceProvider, botTokenValue);
 
-    AppDomain.CurrentDomain.ProcessExit += async (o, e) =>
+    AppDomain.CurrentDomain.ProcessExit += (_, _) =>
     {
         Log.Verbose($"Shutdown received! Debug channel available: {testingBot.DebugChannel != null}");
-        await (testingBot.DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^") ?? Task.CompletedTask);
-        await testingBot.StopAsync();
-        Log.Verbose("literally just waiting and stretching it out.");
-        await Task.Delay(30000);
-        Log.Verbose("Okay, exiting for real now.");
+        // awaiting the task HERE would signal the runtime, that there is nothing to do on this thread, thus allowing continuation of the AppDomain shutdown.
+        testingBot.DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^").GetAwaiter().GetResult();
+        testingBot.StopAsync().GetAwaiter().GetResult();
+        Log.Verbose("Done shutting down.");
     };
-
-    await Task.Delay(5000);
-    Environment.Exit(0);
 
     Log.Verbose("ready and waiting...");
     await Task.Delay(Timeout.Infinite);
