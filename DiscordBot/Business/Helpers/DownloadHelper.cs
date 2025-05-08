@@ -9,7 +9,7 @@ internal static class DownloadHelper
     {
         var directory = Directory.CreateDirectory("YouTubeMedia");
         var fileName = string.Join(string.Empty, fileNamePrefix, '-', Guid.NewGuid());
-        var filePath = Path.Combine(directory.FullName, fileName);
+        var filePath = Path.Combine(directory.Name, fileName);
         List<string> arguments = [url, "-o", filePath];
         try
         {
@@ -58,7 +58,7 @@ internal static class DownloadHelper
             Log.Error(error);
 
             var fullFileName = directory.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
-            return process.ExitCode == 0 && !string.IsNullOrWhiteSpace(fullFileName) ? filePath : null;
+            return process.ExitCode == 0 && !string.IsNullOrWhiteSpace(fullFileName) ? fullFileName : null;
         }
         catch (Exception ex)
         {

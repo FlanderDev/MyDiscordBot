@@ -94,32 +94,33 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
     {
         if (Context.Message.Author is not IGuildUser guildUser || guildUser.VoiceChannel == null)
         {
-            Log.Warning("Could not get user.");
             await Context.Message.ReplyAsync("You have to be in a voice channel.");
-            return;
-        }
-
-        var context = new DatabaseContext();
-        var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault(f => f.CallCode.Equals(text));
-        if (audioClip == null)
-        {
-            Log.Warning("Could not find a clip associated with {callCode} '{callCodeInput}'.", nameof(AudioClip.CallCode), text);
-            await Context.Message.ReplyAsync($"Could not find a clip associated with {nameof(AudioClip.CallCode)} '{text}'.");
-            return;
-        }
-
-        if (!File.Exists(audioClip.FileName))
-        {
-            var fullPath = Path.Combine(Environment.CurrentDirectory, audioClip.FileName);
-            Log.Warning("The file '{fullPath}'w does not exist.", audioClip.FileName);
-            await Context.Message.ReplyAsync($"No associated audio could be found for the valid callCode '{audioClip.CallCode}', freeing callCode.");
-            context.AudioClips.Remove(audioClip);
-            await context.SaveChangesAsync();
             return;
         }
 
         try
         {
+            var context = new DatabaseContext();
+            var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault(f => f.CallCode.Equals(text));
+            if (audioClip == null)
+            {
+                Log.Warning("Could not find a clip associated with {callCode} '{callCodeInput}'.", nameof(AudioClip.CallCode), text);
+                await Context.Message.ReplyAsync($"Could not find a clip associated with {nameof(AudioClip.CallCode)} '{text}'.");
+                return;
+            }
+
+            var data = new DirectoryInfo(Environment.CurrentDirectory);
+            var files = data.GetFiles();
+            if (!File.Exists(audioClip.FileName))
+            {
+                var fullPath = Path.Combine(Environment.CurrentDirectory, audioClip.FileName);
+                Log.Warning("The file '{fullPath}'w does not exist.", audioClip.FileName);
+                await Context.Message.ReplyAsync($"No associated audio could be found for the valid callCode '{audioClip.CallCode}', freeing callCode.");
+                context.AudioClips.Remove(audioClip);
+                await context.SaveChangesAsync();
+                return;
+            }
+
             var audioClient = await guildUser.VoiceChannel.ConnectAsync();
             using var audioHelper = new DiscordAudioHelper(audioClient);
             await audioHelper.PlayAudioAsync(audioClip.FileName);
