@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using System.Collections;
+using Discord;
 using Discord.WebSocket;
 
 namespace DiscordBot.Business.Commands;
@@ -7,7 +8,7 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
 {
     public async Task TriggerAllAsync()
     {
-        await Task.WhenAll(ClaimAsync(), FuckTwitterAsync());
+        await Task.WhenAll(ClaimAsync(), ReplaceLinksAsync());
     }
 
     private async Task ClaimAsync()
@@ -30,15 +31,25 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
         await referenceMessage.AddReactionAsync(buttonComponent.Emote);
     }
 
-    private async Task FuckTwitterAsync()
+    private async Task ReplaceLinksAsync()
     {
-        string[] twitterUrls = ["fxtwitter.com", "x.com", "twitter.com"];
-        var match = twitterUrls.FirstOrDefault(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase));
-        if (match == null)
-            return;
+        foreach (var task in (IEnumerable<Task<bool>>)[
+                     LinkReplacerAsync("fxtwitter.com", ["fxtwitter.com", "x.com", "twitter.com"]),
+                     LinkReplacerAsync("vxreddit.com", ["fxtwitter.com", "x.com", "twitter.com"])])
+            if (await task)
+                break;
 
-        var newText = socketUserMessage.CleanContent.Replace(match, "fxtwitter.com");
-        await socketUserMessage.ReplyAsync($"Replacing link in post from user '{socketUserMessage.Author.GlobalName}':{Environment.NewLine}{newText}");
-        await socketUserMessage.DeleteAsync();
+        return;
+        async Task<bool> LinkReplacerAsync(string replacement, string[] toReplace)
+        {
+            var match = toReplace.FirstOrDefault(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase));
+            if (match == null)
+                return false;
+
+            var newText = socketUserMessage.CleanContent.Replace(match, replacement);
+            await socketUserMessage.ReplyAsync($"Replacing link in post from user '{socketUserMessage.Author.GlobalName}':{Environment.NewLine}{newText}");
+            await socketUserMessage.DeleteAsync();
+            return true;
+        }
     }
 }

@@ -58,25 +58,10 @@ public sealed class InaNisBot
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
-
-            DiscordSocketClient.UserVoiceStateUpdated += async (user, before, after) =>
-            {
-                if (after.VoiceChannel == null || user.IsBot)
-                    return;
-
-                var channel = await after.VoiceChannel.ConnectAsync();
-                using var audioHelper = new DiscordAudioHelper(channel);
-                await audioHelper.PlayAudioAsync("\"C:\\Users\\Felix Kreuzberger\\_myFiles\\tools\\ytdlp\\jjba.webm\"");
-            };
-
             _ = DiscordSocketClient
                 .GetChannelAsync(1270659363132145796)
                 .AsTask()
-                .ContinueWith(async t =>
-                {
-                    if (t.Result is ITextChannel textChannel)
-                        await textChannel.SendMessageAsync("Ready to fuck shit up!");
-                });
+                .ContinueWith(t => (t.Result as ITextChannel)?.SendMessageAsync( $"It's {DateTime.Now:T} and I'm ready to fuck shit up!"));
 
             return true;
         }
@@ -114,11 +99,11 @@ public sealed class InaNisBot
         var position = 0;
         if (Prefix != null && message.HasCharPrefix('!', ref position))
         {
-            Log.Verbose("Igonred message from '{user}': '{message}'", message.Author, message.Content);
+            Log.Verbose("Ignored message from '{user}': '{message}'", message.Author, message.Content);
             return;
         }
 
-        Log.Verbose("Acting on message from '{user}': '{message}'", message.Author, message.Content);
+        Log.Verbose("Received message from '{user}': '{message}'", message.Author, message.Content);
         await Commands.ExecuteAsync(
             new SocketCommandContext(DiscordSocketClient, message),
             position,
