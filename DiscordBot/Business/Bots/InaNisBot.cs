@@ -60,7 +60,9 @@ public sealed class InaNisBot
             if (await DiscordSocketClient.GetChannelAsync(1270659363132145796) is ITextChannel textChannel)
             {
                 DebugChannel = textChannel;
+#if !DEBUG
                 await textChannel.SendMessageAsync( $"It's {DateTime.Now:T} and I'm ready to fuck shit up!");
+#endif
             }
 
             return true;

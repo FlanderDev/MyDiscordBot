@@ -48,12 +48,16 @@ try
 
     AppDomain.CurrentDomain.ProcessExit += async (o, e) =>
     {
-        Console.WriteLine($"Shutdown received! Debug channel available: {testingBot.DebugChannel != null}");
+        Log.Verbose($"Shutdown received! Debug channel available: {testingBot.DebugChannel != null}");
         await (testingBot.DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^") ?? Task.CompletedTask);
         await testingBot.StopAsync();
-        Log.Warning("literally just waiting");
-        await Task.Delay(Timeout.Infinite);
+        Log.Verbose("literally just waiting and stretching it out.");
+        await Task.Delay(30000);
+        Log.Verbose("Okay, exiting for real now.");
     };
+
+    await Task.Delay(5000);
+    Environment.Exit(0);
 
     Log.Verbose("ready and waiting...");
     await Task.Delay(Timeout.Infinite);
@@ -69,5 +73,6 @@ catch (Exception ex)
 }
 finally
 {
+    Log.Verbose("Finally, bye");
     Log.CloseAndFlush();
 }
