@@ -48,9 +48,11 @@ try
 
     AppDomain.CurrentDomain.ProcessExit += async (o, e) =>
     {
-        Console.WriteLine("Shutdown received!");
+        Console.WriteLine($"Shutdown received! Debug channel available: {testingBot.DebugChannel != null}");
         await (testingBot.DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^") ?? Task.CompletedTask);
         await testingBot.StopAsync();
+        Log.Warning("literally just waiting");
+        await Task.Delay(Timeout.Infinite);
     };
 
     Log.Verbose("ready and waiting...");
