@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers;
@@ -53,11 +54,14 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 return;
             }
 
-            await Context.Message.ReplyAsync($"Starting Download for '{callCode}'.");
+            var startText = start?.ToString("g") ?? "start";
+            var endText = end?.ToString("g") ?? "end";
+            await Context.Message.ReplyAsync($"Starting Download for '{callCode}' from {startText} to {endText}");
+
             var filePath = await DownloadHelper.DownloadYouTubeMediaAsync(false, data[0], Context.User.GlobalName, start, end);
             if (filePath == null)
             {
-                await Context.Message.ReplyAsync("Could not create clip.");
+                await Context.Message.ReplyAsync("Could not create clip, error.");
                 return;
             }
 
