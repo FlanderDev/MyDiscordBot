@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers;
@@ -47,11 +46,18 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             }
 
             var context = new DatabaseContext();
-            var callCodeAlreadyExists = await context.AudioClips.AsNoTracking().AnyAsync(a => a.CallCode.Equals(callCode));
-            if (callCodeAlreadyExists)
+            var existingCallCode = await context.AudioClips.FirstOrDefaultAsync(a => a.CallCode.Equals(callCode));
+            if (existingCallCode != null)
             {
-                await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
-                return;
+                if (File.Exists(existingCallCode.FileName))
+                {
+                    await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
+                    return;
+                }
+
+                await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists, but the file could not be found. Freeing call code.");
+                context.AudioClips.Remove(existingCallCode);
+                await context.SaveChangesAsync();
             }
 
             var startText = start?.ToString("g") ?? "start";
@@ -61,11 +67,11 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             var filePath = await DownloadHelper.DownloadYouTubeMediaAsync(false, data[0], Context.User.GlobalName, start, end);
             if (filePath == null)
             {
-                await Context.Message.ReplyAsync("Could not create clip, error.");
+                await Context.Message.ReplyAsync("Could not create clip.");
                 return;
             }
 
-            var audioClip = new AudioClip()
+            var audioClip = new AudioClip
             {
                 FileName = filePath,
                 CallCode = callCode,
@@ -89,7 +95,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
         if (Context.Message.Author is not IGuildUser guildUser || guildUser.VoiceChannel == null)
         {
             Log.Warning("Could not get user.");
-            await Context.Message.ReplyAsync($"You have to be in a voice channel.");
+            await Context.Message.ReplyAsync("You have to be in a voice channel.");
             return;
         }
 
@@ -106,6 +112,9 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
         {
             var fullPath = Path.Combine(Environment.CurrentDirectory, audioClip.FileName);
             Log.Warning("The file '{fullPath}'w does not exist.", audioClip.FileName);
+            await Context.Message.ReplyAsync($"No associated audio could be found for the valid callCode '{audioClip.CallCode}', freeing callCode.");
+            context.AudioClips.Remove(audioClip);
+            await context.SaveChangesAsync();
             return;
         }
 

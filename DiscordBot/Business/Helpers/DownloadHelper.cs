@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using CliWrap;
 using Serilog;
 
 namespace DiscordBot.Business.Helpers;
@@ -12,7 +11,6 @@ internal static class DownloadHelper
         var fileName = string.Join(string.Empty, fileNamePrefix, '-', Guid.NewGuid());
         var filePath = Path.Combine(directory.FullName, fileName);
         List<string> arguments = [url, "-o", filePath];
-        string rawArguments;
         try
         {
             if (!requiresVideo)
@@ -22,7 +20,7 @@ internal static class DownloadHelper
             {
                 arguments.Add("--download-sections");
 
-                var timeRange = new StringBuilder();
+                var timeRange = new StringBuilder("*");
                 if (start != null)
                     timeRange.Append(start.Value.ToString("g"));
 
@@ -35,12 +33,15 @@ internal static class DownloadHelper
             }
 
             //ytDlp = ytDlp.WithArguments(["-x", "--audio-format", "mp3", "--audio-quality", "0"]);
-            rawArguments = string.Join(' ', arguments);
+            var rawArguments = string.Join(' ', arguments);
 
             var psi = new ProcessStartInfo("yt-dlp")
             {
                 Arguments = rawArguments,
-                RedirectStandardError = true
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
             };
             var process = Process.Start(psi);
             if (process == null)
@@ -49,8 +50,12 @@ internal static class DownloadHelper
                 return null;
             }
 
+            await process.WaitForExitAsync();
+            var output = await process.StandardOutput.ReadToEndAsync();
             var error = await process.StandardError.ReadToEndAsync();
-            return string.IsNullOrWhiteSpace(error) ? filePath : null;
+
+            var fullFileName = directory.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
+            return process.ExitCode == 0 && !string.IsNullOrWhiteSpace(fullFileName) ? filePath : null;
         }
         catch (Exception ex)
         {
