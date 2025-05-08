@@ -54,6 +54,9 @@ internal static class DownloadHelper
             var output = await process.StandardOutput.ReadToEndAsync();
             var error = await process.StandardError.ReadToEndAsync();
 
+            Log.Information(output);
+            Log.Error(error);
+
             var fullFileName = directory.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
             return process.ExitCode == 0 && !string.IsNullOrWhiteSpace(fullFileName) ? filePath : null;
         }
