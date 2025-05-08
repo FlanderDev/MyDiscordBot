@@ -29,7 +29,7 @@ public class MediaAsset
     public int? ImageHeight { get; set; }
 
     [JsonPropertyName("duration")]
-    public TimeSpan? Duration { get; set; }
+    public double? Duration { get; set; }
 
     [JsonPropertyName("status")]
     public string Status { get; set; } = string.Empty;
