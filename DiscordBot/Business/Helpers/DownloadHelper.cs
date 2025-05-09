@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Text;
 using Serilog;
 
@@ -19,6 +20,18 @@ internal static class DownloadHelper
             Log.Verbose("Downloading yt-dlp...");
             var fileName = OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe";
             var result = await GitHubHelper.DownloadGithubReleaseAsync("yt-dlp", "yt-dlp", fileName, "yt-dlp");
+            if (result && OperatingSystem.IsLinux())
+            {
+                var process = Process.Start("chmod", $"+x {fileName}");
+                await process.WaitForExitAsync();
+
+                var info = await process.StandardOutput.ReadToEndAsync();
+                Log.Information(info);
+
+                var error = await process.StandardError.ReadToEndAsync();
+                Log.Warning(error);
+            }
+
             Log.Information("Downloading yt-dlp; {result}.", result ? "successful" : "failure");
             return result;
         }

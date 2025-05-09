@@ -19,11 +19,8 @@ internal sealed class DiscordAudioHelper(IAudioClient audioClient) : IDisposable
 
         await using var ffmpegStream = ffmpegProcess.StandardOutput.BaseStream;
         await ffmpegStream.CopyToAsync(_audioOutStream);
-    }
-
-    internal async Task FlushAsync()
-    {
         await _audioOutStream.FlushAsync();
+
     }
 
     public void Dispose()
