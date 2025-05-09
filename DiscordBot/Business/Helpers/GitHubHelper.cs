@@ -14,7 +14,7 @@ internal static class GitHubHelper
     {
         try
         {
-            var restClient = new RestClient("github.com");
+            var restClient = new RestClient("https://github.com");
             var request = new RestRequest($"/repos/{gitHubName}/{gitHubRepo}/releases/latest");
             var response = await restClient.ExecuteAsync<Release>(request);
             var fileToDownload = response.Data?.Assets.FirstOrDefault(f => f.Name.EndsWith(fileEnding));
