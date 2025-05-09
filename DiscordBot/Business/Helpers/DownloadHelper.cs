@@ -54,7 +54,7 @@ internal static class DownloadHelper
 
     internal static async Task<string?> DownloadYouTubeMediaAsync(bool requiresVideo, string url, string fileNamePrefix = "", TimeSpan? start = null, TimeSpan? end = null)
     {
-        if (await EnsureDownloaderExistsAsync())
+        if (!await EnsureDownloaderExistsAsync())
         {
             Log.Warning("Downloader could not located nor downloaded, aborting.");
             return null;
