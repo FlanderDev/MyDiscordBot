@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
+﻿using System.Text;
 using Serilog;
 
 namespace DiscordBot.Business.Helpers;
