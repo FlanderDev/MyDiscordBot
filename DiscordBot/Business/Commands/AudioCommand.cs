@@ -34,10 +34,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
                 continue;
             }
             await audioHelper.PlayAudioAsync(audioResource);
-
-            await Task.Delay(200);
         }
-        await audioHelper.FlushAsync();
     }
 
     [Command("ara", RunMode = RunMode.Async)]
@@ -80,10 +77,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
 
                 var audioResource = await FileManager.GetLocalResourceOrDownloadAsync($"ara-{num}.mp3", araUrl);
                 await audioHelper.PlayAudioAsync(araUrl);
-
-                await Task.Delay(1000);
             }
-            await audioHelper.FlushAsync();
         }
         catch (Exception ex)
         {
