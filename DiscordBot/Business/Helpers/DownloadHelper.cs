@@ -1,10 +1,12 @@
 ﻿using Serilog;
+using System.IO;
 using System.Text;
 
 namespace DiscordBot.Business.Helpers;
 
 internal static class DownloadHelper
 {
+    internal static DirectoryInfo MediaFiles = new("MediaFiles");
     internal static async Task<bool> EnsureDownloaderExistsAsync(bool forceUpdate = false)
     {
         try
@@ -51,9 +53,11 @@ internal static class DownloadHelper
             return null;
         }
 
-        var directory = Directory.CreateDirectory("YouTubeMedia");
+        if (!MediaFiles.Exists)
+            MediaFiles.Create();
+
         var fileName = string.Join(string.Empty, fileNamePrefix, '-', Guid.NewGuid());
-        var filePath = Path.Combine(directory.Name, fileName);
+        var filePath = Path.Combine(MediaFiles.Name, fileName);
         List<string> arguments = [url, "-o", filePath];
         try
         {
@@ -82,7 +86,7 @@ internal static class DownloadHelper
                 return null;
             }
 
-            var fullFileName = directory.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
+            var fullFileName = MediaFiles.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
             return value.info != null && !string.IsNullOrWhiteSpace(fullFileName) ? fullFileName : null;
         }
         catch (Exception ex)

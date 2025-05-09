@@ -6,18 +6,23 @@ namespace DiscordBot.Database;
 
 public sealed class DatabaseContext : DbContext
 {
+    private static readonly DirectoryInfo ParentDirectory = new("Database");
     public DbSet<AudioClip> AudioClips => Set<AudioClip>();
     public DbSet<DiscordUser> DiscordUsers => Set<DiscordUser>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite($"Data source={nameof(DiscordBot)}.db");
+        var relativePath = Path.Combine(ParentDirectory.Name, nameof(DiscordBot));
+        optionsBuilder.UseSqlite($"Data source={relativePath}.db");
     }
 
     internal static bool CreateDefault()
     {
         try
         {
+            if (!ParentDirectory.Exists)
+                ParentDirectory.Create();
+
             using var context = new DatabaseContext();
             if (!context.Database.EnsureCreated())
             {

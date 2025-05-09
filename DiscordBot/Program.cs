@@ -36,7 +36,11 @@ try
         return 100;
     }
 
-    DatabaseContext.CreateDefault();
+    if (!DatabaseContext.CreateDefault())
+    {
+        Log.Warning("Failed to create default database, stopping application.");
+        return 101;
+    }
 
     if (configuration.GetLogValue("Danbooru:Token") is not { } danbooruToken)
         Log.Warning("No danbooru token has been provided, some functionality won't work.");
