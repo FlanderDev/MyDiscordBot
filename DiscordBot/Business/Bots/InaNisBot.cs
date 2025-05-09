@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBot.Business.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using System.Diagnostics;
 using System.Reflection;
-using DiscordBot.Business.Commands;
 
 namespace DiscordBot.Business.Bots;
 

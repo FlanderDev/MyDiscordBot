@@ -1,11 +1,11 @@
-﻿using System.Text.RegularExpressions;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Database;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Text.RegularExpressions;
 
 namespace DiscordBot.Business.Commands;
 
