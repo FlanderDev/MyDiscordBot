@@ -47,13 +47,10 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
             switch (text)
             {
                 case "update":
-                    var (info, error) = await DownloadHelper.UpdateYtDlpAsync();
-
-                    if (!string.IsNullOrWhiteSpace(info))
-                        await message.ReplyAsync($"INFO:{Environment.NewLine}{info}");
-                    if (!string.IsNullOrWhiteSpace(error))
-                        await message.ReplyAsync($"ERROR:{Environment.NewLine}{error}");
+                    var result = await DownloadHelper.UpdateYtDlpAsync() ? "succeeded" : "failed";
+                    await message.ReplyAsync($"Update {result}");
                     break;
+
                 case "dbReset":
                     await databaseContext.Database.EnsureDeletedAsync();
                     await databaseContext.Database.EnsureCreatedAsync();

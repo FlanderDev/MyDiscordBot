@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.Intrinsics.Arm;
 using System.Text;
 using Serilog;
 
@@ -22,22 +23,11 @@ internal static class DownloadHelper
             var result = await GitHubHelper.DownloadGithubReleaseAsync("yt-dlp", "yt-dlp", fileName, "yt-dlp");
             if (result && OperatingSystem.IsLinux())
             {
-                var psi = new ProcessStartInfo("chmod")
+                if (await ProcessHelper.StartProcessAsync("chmod", "+x yt-dlp") is not { } value)
                 {
-                    Arguments = "+x yt-dlp",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                };
-                var process = Process.Start(psi) ?? throw new Exception("Process could not be created.");
-                await process.WaitForExitAsync();
-
-                var info = await process.StandardOutput.ReadToEndAsync();
-                Log.Information(info);
-
-                var error = await process.StandardError.ReadToEndAsync();
-                Log.Warning(error);
+                    Log.Error("Could not create process for {fileName}.", "chmod");
+                    return false;
+                }
             }
 
             Log.Information("Downloading yt-dlp; {result}.", result ? "successful" : "failure");
@@ -50,27 +40,10 @@ internal static class DownloadHelper
         }
     }
 
-    internal static async Task<(string, string)> UpdateYtDlpAsync()
+    internal static async Task<bool> UpdateYtDlpAsync()
     {
-        var psi = new ProcessStartInfo("yt-dlp")
-        {
-            Arguments = "-U",
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardError = true,
-            RedirectStandardOutput = true,
-        };
-        var process = Process.Start(psi) ?? throw new Exception("Process could not be generated.");
-        await process.WaitForExitAsync();
-
-        var info = await process.StandardOutput.ReadToEndAsync();
-        Log.Information(info);
-
-        var error = await process.StandardError.ReadToEndAsync();
-        Log.Warning(error);
-
-        Log.Information("UPDATE DONE!");
-        return (info, error);
+        var value = await ProcessHelper.StartProcessAsync("yt-dlp", "-U");
+        return value?.info != null;
     }
 
     internal static async Task<string?> DownloadYouTubeMediaAsync(bool requiresVideo, string url, string fileNamePrefix = "", TimeSpan? start = null, TimeSpan? end = null)
@@ -106,36 +79,14 @@ internal static class DownloadHelper
                 arguments.Add(timeRange.ToString());
             }
 
-            //ytDlp = ytDlp.WithArguments(["-x", "--audio-format", "mp3", "--audio-quality", "0"]);
-            var rawArguments = string.Join(' ', arguments);
-
-            var psi = new ProcessStartInfo("yt-dlp")
+            if (await ProcessHelper.StartProcessAsync("yt-dlp", arguments) is not { } value)
             {
-                Arguments = rawArguments,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-            };
-            var process = Process.Start(psi);
-            if (process == null)
-            {
-                Log.Error("Could not create process for {fileName}.", psi.FileName);
+                Log.Error("Could not create process for {fileName}.", "yt-dlp");
                 return null;
             }
 
-            await process.WaitForExitAsync();
-
-            var output = await process.StandardOutput.ReadToEndAsync();
-            if (!string.IsNullOrWhiteSpace(output))
-                Log.Information(output);
-
-            var error = await process.StandardError.ReadToEndAsync();
-            if (!string.IsNullOrWhiteSpace(error))
-                Log.Error(error);
-
             var fullFileName = directory.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
-            return process.ExitCode == 0 && !string.IsNullOrWhiteSpace(fullFileName) ? fullFileName : null;
+            return value.info != null && !string.IsNullOrWhiteSpace(fullFileName) ? fullFileName : null;
         }
         catch (Exception ex)
         {
