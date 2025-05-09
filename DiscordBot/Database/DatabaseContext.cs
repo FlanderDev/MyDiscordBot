@@ -25,6 +25,12 @@ public sealed class DatabaseContext : DbContext
                 return true;
             }
 
+            context.DiscordUsers.Add(new DiscordUser
+            {
+                Id = 229720939078615040,
+                GlobalName = "flander_lander",
+            });
+
             context.SaveChanges();
             Log.Information("Created default database.");
             return true;

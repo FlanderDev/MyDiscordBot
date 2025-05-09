@@ -3,8 +3,32 @@ using System.Text;
 using Serilog;
 
 namespace DiscordBot.Business.Helpers;
+
 internal static class DownloadHelper
 {
+    internal static async Task<(string, string)> UpdateYtDlpAsync()
+    {
+        var psi = new ProcessStartInfo("yt-dlp")
+        {
+            Arguments = "-U",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+        };
+        var process = Process.Start(psi) ?? throw new Exception("Process could not be generated.");
+        await process.WaitForExitAsync();
+
+        var info = await process.StandardOutput.ReadToEndAsync();
+        Log.Information(info);
+
+        var error = await process.StandardError.ReadToEndAsync();
+        Log.Warning(error);
+
+        Log.Information("UPDATE DONE!");
+        return (info, error);
+    }
+
     internal static async Task<string?> DownloadYouTubeMediaAsync(bool requiresVideo, string url, string fileNamePrefix = "", TimeSpan? start = null, TimeSpan? end = null)
     {
         var directory = Directory.CreateDirectory("YouTubeMedia");

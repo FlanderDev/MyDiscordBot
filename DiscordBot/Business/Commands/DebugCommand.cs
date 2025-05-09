@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using DiscordBot.Business.Helpers;
 using DiscordBot.Database;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,14 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
             await using var databaseContext = new DatabaseContext();
             switch (text)
             {
+                case "update":
+                    var (info, error) = await DownloadHelper.UpdateYtDlpAsync();
+
+                    if (!string.IsNullOrWhiteSpace(info))
+                        await message.ReplyAsync($"INFO:{Environment.NewLine}{info}");
+                    if (!string.IsNullOrWhiteSpace(error))
+                        await message.ReplyAsync($"ERROR:{Environment.NewLine}{error}");
+                    break;
                 case "dbReset":
                     await databaseContext.Database.EnsureDeletedAsync();
                     await databaseContext.Database.EnsureCreatedAsync();
