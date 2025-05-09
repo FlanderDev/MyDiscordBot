@@ -6,6 +6,29 @@ namespace DiscordBot.Business.Helpers;
 
 internal static class DownloadHelper
 {
+    internal static async Task<bool> EnsureDownloaderExistsAsync(bool forceUpdate = false)
+    {
+        try
+        {
+            if (forceUpdate && File.Exists("yt-dlp"))
+                File.Delete("yt-dlp");
+
+            if (File.Exists("yt-dlp"))
+                return true;
+
+            Log.Verbose("Downloading yt-dlp...");
+            var fileName = OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe";
+            var result = await GitHubHelper.DownloadGithubReleaseAsync("yt-dlp", "yt-dlp", fileName, "yt-dlp");
+            Log.Information("Downloading yt-dlp; {result}.", result ? "successful" : "failure");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Unexpected failure while ensuring yt-dlp's existence.");
+            return false;
+        }
+    }
+
     internal static async Task<(string, string)> UpdateYtDlpAsync()
     {
         var psi = new ProcessStartInfo("yt-dlp")
@@ -31,6 +54,12 @@ internal static class DownloadHelper
 
     internal static async Task<string?> DownloadYouTubeMediaAsync(bool requiresVideo, string url, string fileNamePrefix = "", TimeSpan? start = null, TimeSpan? end = null)
     {
+        if (await EnsureDownloaderExistsAsync())
+        {
+            Log.Warning("Downloader could not located nor downloaded, aborting.");
+            return null;
+        }
+
         var directory = Directory.CreateDirectory("YouTubeMedia");
         var fileName = string.Join(string.Empty, fileNamePrefix, '-', Guid.NewGuid());
         var filePath = Path.Combine(directory.Name, fileName);
@@ -93,14 +122,4 @@ internal static class DownloadHelper
             return null;
         }
     }
-
-    private static Process DownloadYouTubeVideo(string arguments) =>
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = "yt-dlp",
-            Arguments = arguments,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        }) ?? throw new Exception("Could not initialize yt-dlp process.");
 }
