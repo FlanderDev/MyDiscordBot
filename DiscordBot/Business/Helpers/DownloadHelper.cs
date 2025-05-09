@@ -22,7 +22,7 @@ internal static class DownloadHelper
             var result = await GitHubHelper.DownloadGithubReleaseAsync("yt-dlp", "yt-dlp", fileName, "yt-dlp");
             if (result && OperatingSystem.IsLinux())
             {
-                var process = Process.Start("chmod", $"+x {fileName}");
+                var process = Process.Start("chmod", "+x yt-dlp");
                 await process.WaitForExitAsync();
 
                 var info = await process.StandardOutput.ReadToEndAsync();
