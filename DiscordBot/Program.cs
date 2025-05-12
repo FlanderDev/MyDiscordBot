@@ -1,10 +1,10 @@
-using System.Reflection;
+using DiscordBot.Business.Bots;
 using DiscordBot.Business.Helpers;
 using DiscordBot.Components;
 using DiscordBot.Data;
-using Serilog.Events;
 using Serilog;
-using DiscordBot.Business.Bots;
+using Serilog.Events;
+using System.Reflection;
 
 try
 {

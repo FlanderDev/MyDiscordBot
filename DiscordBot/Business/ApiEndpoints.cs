@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace DiscordBot.Business;
+﻿namespace DiscordBot.Business;
 
 public sealed class ApiEndpoints
 {
