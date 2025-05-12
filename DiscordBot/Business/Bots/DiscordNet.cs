@@ -2,52 +2,39 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Business.Commands;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace DiscordBot.Business.Bots;
 
-public sealed class InaNisBot
+public sealed class DiscordNet : IHostedService
 {
-    internal DiscordSocketClient DiscordSocketClient { get; }
-    internal CommandService Commands { get; }
-    internal IServiceProvider ServiceProvider { get; private set; }
-    internal char? Prefix { get; private set; }
-
+    internal string? Token { get; set; }
     internal ITextChannel? DebugChannel;
-
-    public InaNisBot(IServiceProvider serviceProvider, char? prefix = null)
+    internal DiscordSocketClient DiscordSocketClient = new(new DiscordSocketConfig
     {
-        ServiceProvider = serviceProvider;
-        Prefix = prefix;
+        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+    });
 
-        var discordSocketConfig = new DiscordSocketConfig
-        {
-            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
-        };
+    private readonly CommandService _commands = new();
 
-        DiscordSocketClient = new DiscordSocketClient(discordSocketConfig);
-        Commands = new CommandService();
-        DiscordSocketClient.MessageReceived += MessageReceivedAsync;
-    }
-
-    public async Task<bool> StartAsync(ServiceProvider services, string? botToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         try
         {
-            await Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), services);
-
-            if (string.IsNullOrWhiteSpace(botToken))
+            if (string.IsNullOrWhiteSpace(Token))
             {
                 Log.Error("Invalid token.");
-                return false;
+                throw new ArgumentException("The token is invalid.");
             }
 
+            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), null);
+
             var botBooting = new TaskCompletionSource();
-            DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult);
-            await DiscordSocketClient.LoginAsync(TokenType.Bot, botToken);
+            DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult, cancellationToken);
+
+            await DiscordSocketClient.LoginAsync(TokenType.Bot, Token);
             await DiscordSocketClient.StartAsync();
 
             Log.Information("Bot starting...");
@@ -65,27 +52,37 @@ public sealed class InaNisBot
 #endif
             }
 
-            return true;
+            DiscordSocketClient.MessageReceived += MessageReceivedAsync;
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+            {
+                Log.Verbose($"Shutdown received! Debug channel available: {DebugChannel != null}");
+                // awaiting the task HERE would signal the runtime, that there is nothing to do on this thread, thus allowing continuation of the AppDomain shutdown.
+                DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^").GetAwaiter().GetResult();
+                StopAsync(default).GetAwaiter().GetResult();
+                Log.Verbose("Done shutting down.");
+            };
+
+            if (cancellationToken.IsCancellationRequested)
+                throw new TaskCanceledException("Canceled bot initialization.");
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Could not start bot.");
-            return false;
+            throw new Exception("The bot failed to initialize.", ex);
         }
     }
 
-    public async Task<bool> StopAsync()
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
         try
         {
             await DiscordSocketClient.LogoutAsync();
             await DiscordSocketClient.StopAsync();
-            return true;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Could not stop the bot.");
-            return false;
+            throw new Exception("Error stopping bot.", ex);
         }
     }
 
@@ -98,17 +95,9 @@ public sealed class InaNisBot
 
         await new ManualCommands(message).TriggerAllAsync();
 
-        var position = 0;
-        if (Prefix != null && message.HasCharPrefix('!', ref position))
-        {
-            Log.Verbose("Ignored message from '{user}': '{message}'", message.Author, message.Content);
-            return;
-        }
-
         Log.Verbose("Received message from '{user}': '{message}'", message.Author, message.Content);
-        await Commands.ExecuteAsync(
+        await _commands.ExecuteAsync(
             new SocketCommandContext(DiscordSocketClient, message),
-            position,
-            ServiceProvider);
+            message.Content, null);
     }
 }

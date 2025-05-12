@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace DiscordBot.Database;
+namespace DiscordBot.Data;
 
 public sealed class DatabaseContext : DbContext
 {

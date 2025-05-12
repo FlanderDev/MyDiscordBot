@@ -1,7 +1,7 @@
 ﻿using RestSharp;
 using Serilog;
 
-namespace DiscordBot.Business.Manager;
+namespace DiscordBot.Business.Helpers;
 
 internal static class FileManager
 {

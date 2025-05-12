@@ -228,3 +228,4 @@ _Pvt_Extensions
 # Rider
 .idea/
 /DiscordBot/Properties/launchSettings.json
+/DiscordBot/Database
