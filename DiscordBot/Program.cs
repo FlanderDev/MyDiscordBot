@@ -1,22 +1,23 @@
-﻿using DiscordBot.Business.Bots;
-using DiscordBot.Business.Helpers;
-using Serilog;
-using Serilog.Events;
 using System.Reflection;
+using DiscordBot.Business.Helpers;
 using DiscordBot.Components;
 using DiscordBot.Data;
-using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Serilog.Events;
+using Serilog;
+using DiscordBot.Business.Bots;
 
 try
 {
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Verbose()
         .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
-        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose) //Default: Verbose
+        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose)
         .CreateLogger();
+
     Log.Information("Initialized logging.");
 
     AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+
 
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog(Log.Logger);
@@ -50,36 +51,37 @@ try
         Token = botTokenValue
     };
 
-    builder.Services.AddSerilog();
-    builder.Services.AddSingleton(discordNet);
     builder.Services
+        .AddSerilog()
+        .AddSingleton(discordNet)
         .AddRazorComponents()
         .AddInteractiveServerComponents();
-
 
     var app = builder.Build();
     if (!app.Environment.IsDevelopment())
         app.UseExceptionHandler("/Error", createScopeForErrors: true);
 
+
     app.UseAntiforgery();
-    app.UseStaticFiles();
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
     await discordNet.StartAsync(default);
+    Log.Verbose("Ready...");
     app.Run();
-
-    Log.Information("Shutting down by passing infinity. Yes really!");
     return 0;
 }
 catch (Exception ex)
 {
     Log.Error(ex, "Unexpected error. Ending application.");
-    return -1;
+    return 1;
 }
 finally
 {
     Log.Verbose("Finally, bye");
     Log.CloseAndFlush();
 }
+
+
+
