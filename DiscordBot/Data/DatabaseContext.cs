@@ -1,4 +1,5 @@
-﻿using DiscordBot.Models.Enteties;
+﻿using DiscordBot.Business.Helpers;
+using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -6,13 +7,13 @@ namespace DiscordBot.Data;
 
 public sealed class DatabaseContext : DbContext
 {
-    private static readonly DirectoryInfo ParentDirectory = new("Database");
     public DbSet<AudioClip> AudioClips => Set<AudioClip>();
     public DbSet<DiscordUser> DiscordUsers => Set<DiscordUser>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var relativePath = Path.Combine(ParentDirectory.Name, nameof(DiscordBot));
+        var databaseDirectory = FileManager.GetDatabaseDirectory();
+        var relativePath = Path.Combine(databaseDirectory.Name, nameof(DiscordBot));
         optionsBuilder.UseSqlite($"Data source={relativePath}.db");
     }
 
@@ -20,8 +21,9 @@ public sealed class DatabaseContext : DbContext
     {
         try
         {
-            if (!ParentDirectory.Exists)
-                ParentDirectory.Create();
+            var databaseDirectory = FileManager.GetDatabaseDirectory();
+            if (!databaseDirectory.Exists)
+                databaseDirectory.Create();
 
             using var context = new DatabaseContext();
             if (!context.Database.EnsureCreated())
