@@ -1,18 +1,19 @@
 using DiscordBot.Business.Bots;
-using DiscordBot.Business.Helpers;
 using DiscordBot.Components;
 using DiscordBot.Data;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
+using DiscordBot.Models.Internal;
+using Microsoft.Extensions.Options;
 
 try
 {
     Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Verbose()
-        .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
-        .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose)
-        .CreateLogger();
+    .MinimumLevel.Verbose()
+    .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
+    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose)
+    .CreateLogger();
 
     Log.Information("Initialized logging.");
 
@@ -24,16 +25,15 @@ try
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(Log.Logger);
 
-    var configuration = builder.Configuration
+    builder.Configuration
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
-        .AddEnvironmentVariables()
-        .Build();
+        .AddEnvironmentVariables();
 
-    if (configuration.GetLogValue("DiscordBot:Token") is not { } botTokenValue)
-    {
-        Log.Warning("No discord token has been provided, stopping application.");
-        return 100;
-    }
+    // 3 extra lines, just to validate options... I hate it.
+    builder.Services.Configure<Configuration>(builder.Configuration)
+        .AddOptionsWithValidateOnStart<Configuration>()
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
 
     if (!DatabaseContext.CreateDefault())
     {
@@ -41,19 +41,13 @@ try
         return 101;
     }
 
-    if (configuration.GetLogValue("Danbooru:Token") is not { } danbooruToken)
-        Log.Warning("No danbooru token has been provided, some functionality won't work.");
-    else
-        DanbooruHelper.ApiKey = danbooruToken;
-
-    var discordNet = new DiscordNet
-    {
-        Token = botTokenValue
-    };
+    //_ = discordNet.StartAsync(default); // Not waiting for this, since we don't work with the result & if it crashes the application ends.
 
     builder.Services
         .AddSerilog()
-        .AddSingleton(discordNet)
+        .AddHostedService<DiscordNet>();
+
+    builder.Services
         .AddRazorComponents()
         .AddInteractiveServerComponents();
 
@@ -61,27 +55,27 @@ try
     if (!app.Environment.IsDevelopment())
         app.UseExceptionHandler("/Error", createScopeForErrors: true);
 
-
     app.UseAntiforgery();
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
-    await discordNet.StartAsync(default);
-    Log.Verbose("Ready...");
+    Log.Verbose("Running web application.");
     app.Run();
     return 0;
 }
+catch (OptionsValidationException ex) // The var name 'IoEx' would cause confusion for sure here, no? :D
+{
+    Log.Fatal(ex, "The configuration is missing some value. Double check your key spellings.");
+    return 2;
+}
 catch (Exception ex)
 {
-    Log.Error(ex, "Unexpected error. Ending application.");
+    Log.Fatal(ex, "Unexpected fatal error.");
     return 1;
 }
 finally
 {
-    Log.Verbose("Finally, bye");
+    Log.Information("Ending application.");
     Log.CloseAndFlush();
 }
-
-
-
