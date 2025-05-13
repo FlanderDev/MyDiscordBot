@@ -1,11 +1,11 @@
 using DiscordBot.Business.Bots;
 using DiscordBot.Components;
 using DiscordBot.Data;
+using DiscordBot.Models.Internal;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
-using DiscordBot.Models.Internal;
-using Microsoft.Extensions.Options;
 
 try
 {
@@ -62,6 +62,8 @@ try
 
     Log.Verbose("Running web application.");
     app.Run();
+
+    Log.Information("Application ran to completion.");
     return 0;
 }
 catch (OptionsValidationException ex) // The var name 'IoEx' would cause confusion for sure here, no? :D
