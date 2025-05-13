@@ -5,12 +5,14 @@ using DiscordBot.Business.Commands;
 using Serilog;
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.Extensions.Options;
+using DiscordBot.Models.Internal;
 
 namespace DiscordBot.Business.Bots;
 
-public sealed class DiscordNet : IHostedService
+public sealed class DiscordNet(IOptions<Configuration> options) : IHostedService
 {
-    internal string? Token { get; set; }
+    //internal string? Token { get; set; }
     internal ITextChannel? DebugChannel;
     internal DiscordSocketClient DiscordSocketClient = new(new DiscordSocketConfig
     {
@@ -23,7 +25,9 @@ public sealed class DiscordNet : IHostedService
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(Token))
+            Log.Verbose("Starting {service} service.", nameof(DiscordNet));
+
+            if (string.IsNullOrWhiteSpace(options.Value.Discord.Token))
             {
                 Log.Error("Invalid token.");
                 throw new ArgumentException("The token is invalid.");
@@ -34,7 +38,7 @@ public sealed class DiscordNet : IHostedService
             var botBooting = new TaskCompletionSource();
             DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult, cancellationToken);
 
-            await DiscordSocketClient.LoginAsync(TokenType.Bot, Token);
+            await DiscordSocketClient.LoginAsync(TokenType.Bot, options.Value.Discord.Token);
             await DiscordSocketClient.StartAsync();
 
             Log.Information("Bot starting...");
