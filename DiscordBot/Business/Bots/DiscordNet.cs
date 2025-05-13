@@ -25,7 +25,7 @@ public sealed class DiscordNet(IOptions<Configuration> options) : IHostedService
     {
         try
         {
-            Log.Verbose("Starting {service} service.", nameof(DiscordNet));
+            Log.Verbose("Starting {name} service.", nameof(DiscordNet));
 
             if (string.IsNullOrWhiteSpace(options.Value.Discord.Token))
             {
@@ -57,14 +57,6 @@ public sealed class DiscordNet(IOptions<Configuration> options) : IHostedService
             }
 
             DiscordSocketClient.MessageReceived += MessageReceivedAsync;
-            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-            {
-                Log.Verbose($"Shutdown received! Debug channel available: {DebugChannel != null}");
-                // awaiting the task HERE would signal the runtime, that there is nothing to do on this thread, thus allowing continuation of the AppDomain shutdown.
-                DebugChannel?.SendMessageAsync("Sorry folks, I'm heading out^^").GetAwaiter().GetResult();
-                StopAsync(default).GetAwaiter().GetResult();
-                Log.Verbose("Done shutting down.");
-            };
 
             if (cancellationToken.IsCancellationRequested)
                 throw new TaskCanceledException("Canceled bot initialization.");
@@ -80,6 +72,7 @@ public sealed class DiscordNet(IOptions<Configuration> options) : IHostedService
     {
         try
         {
+            Log.Information("Stopping {name}...", nameof(DiscordNet));
             await DiscordSocketClient.LogoutAsync();
             await DiscordSocketClient.StopAsync();
         }
