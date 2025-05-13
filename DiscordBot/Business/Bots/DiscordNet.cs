@@ -12,8 +12,8 @@ namespace DiscordBot.Business.Bots;
 
 public sealed class DiscordNet(IOptions<Configuration> options) : IHostedService
 {
-    //internal string? Token { get; set; }
     internal ITextChannel? DebugChannel;
+
     internal DiscordSocketClient DiscordSocketClient = new(new DiscordSocketConfig
     {
         GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
@@ -85,16 +85,23 @@ public sealed class DiscordNet(IOptions<Configuration> options) : IHostedService
 
     private async Task MessageReceivedAsync(SocketMessage arg)
     {
-        Log.Verbose("Received Message: {newLine}{message}", Environment.NewLine, arg.CleanContent);
+        try
+        {
+            Log.Verbose("Received Message: {newLine}{message}", Environment.NewLine, arg.CleanContent);
 
-        if (arg is not SocketUserMessage message || message.Author.IsBot)
-            return;
+            if (arg is not SocketUserMessage message || message.Author.IsBot)
+                return;
 
-        await new ManualCommands(message).TriggerAllAsync();
+            await new ManualCommands(message).TriggerAllAsync();
 
-        Log.Verbose("Received message from '{user}': '{message}'", message.Author, message.Content);
-        await _commands.ExecuteAsync(
-            new SocketCommandContext(DiscordSocketClient, message),
-            message.Content, null);
+            Log.Verbose("Received message from '{user}': '{message}'", message.Author, message.Content);
+            await _commands.ExecuteAsync(
+                new SocketCommandContext(DiscordSocketClient, message),
+                message.Content, null);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error reacting to {name}.", nameof(MessageReceivedAsync));
+        }
     }
 }
