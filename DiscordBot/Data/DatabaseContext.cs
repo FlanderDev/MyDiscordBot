@@ -1,4 +1,4 @@
-﻿using DiscordBot.Business.Helpers;
+﻿using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
