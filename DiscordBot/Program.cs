@@ -29,10 +29,10 @@ try
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables();
 
-    // 3 extra lines, just to validate options... I hate it.
+    // this kinda of validation is... special :d
     builder.Services.Configure<Configuration>(builder.Configuration)
         .AddOptionsWithValidateOnStart<Configuration>()
-        .ValidateDataAnnotations()
+        .Validate(RecursivelyNotNullOrWhiteSpace)
         .ValidateOnStart();
 
     if (!DatabaseContext.CreateDefault())
@@ -41,11 +41,11 @@ try
         return 101;
     }
 
-    //_ = discordNet.StartAsync(default); // Not waiting for this, since we don't work with the result & if it crashes the application ends.
-
     builder.Services
         .AddSerilog()
-        .AddHostedService<DiscordNet>();
+        .AddHttpContextAccessor()
+        //.AddHostedService<DiscordNet>()
+        .AddHealthChecks();
 
     builder.Services
         .AddRazorComponents()
@@ -60,6 +60,8 @@ try
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
+    app.MapHealthChecks("/status");
+
     Log.Verbose("Running web application.");
     app.Run();
 
@@ -73,11 +75,34 @@ catch (OptionsValidationException ex) // The var name 'IoEx' would cause confusi
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Unexpected fatal error.");
+    Log.Fatal(ex, ex.InnerException == null ? "Unexpected fatal error." : "Unexpected fatal error. See inner exception.");
+    Log.Fatal(ex.InnerException, "Inner exception of crash reason.");
     return 1;
 }
 finally
 {
     Log.Information("Ending application.");
     Log.CloseAndFlush();
+}
+
+static bool RecursivelyNotNullOrWhiteSpace(object instance)
+{
+    foreach (var property in instance.GetType().GetProperties())
+    {
+        var propertyValue = property.GetValue(instance);
+        switch (propertyValue)
+        {
+            case null:
+                return false;
+            case string text when !string.IsNullOrWhiteSpace(text):
+                continue;
+        }
+
+        // Probably should check for more but classes, but meh
+        if (property.PropertyType.IsClass &&
+            !property.PropertyType.Name.Equals("String", StringComparison.OrdinalIgnoreCase) &&
+            !RecursivelyNotNullOrWhiteSpace(propertyValue))
+            return false;
+    }
+    return true;
 }

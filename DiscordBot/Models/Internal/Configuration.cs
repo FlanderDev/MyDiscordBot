@@ -1,11 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace DiscordBot.Models.Internal;
 
-namespace DiscordBot.Models.Internal;
-
-public class Configuration
+public sealed class Configuration
 {
-    public Discord Discord { get; set; }
+    public Discord Discord { get; set; } = new();
 
-    [Required]
-    public string DanbooruToken { get; set; }
+    public string DanbooruToken { get; set; } = string.Empty;
 }

@@ -1,0 +1,67 @@
+﻿@using System.Net.Http.Headers
+@using System.Text.Json
+@using DiscordBot.Models.Internal
+@using Microsoft.Extensions.Options
+@using RestSharp
+@using Serilog
+@page "/Auth/Callback"
+@inject IOptions<Configuration> Options
+@inject IHttpContextAccessor Context
+
+@{
+    OAuthCallbackAsync(Options.Value.Discord).GetAwaiter().GetResult();
+}
+
+<h3>Callback</h3>
+
+
+@code {
+    internal async Task OAuthCallbackAsync(Discord discord)
+    {
+        if (Context.HttpContext == null)
+        {
+            Log.Error("No valid context is available.");
+            return;
+        }
+
+        var authorizationCode = Context.HttpContext.Request.Query.TryGetValue("code", out var value) ? value.ToString() : null;
+        if (string.IsNullOrWhiteSpace(authorizationCode))
+        {
+            Log.Error("No valid discord code!");
+            return;
+        }
+
+        var restClient = new RestClient("https://discord.com");
+        var restRequest = new RestRequest("/api/oauth2/token")
+            .AddParameter("client_id", discord.ClientId)
+            .AddParameter("client_secret", discord.ClientSecret)
+            .AddParameter("grant_type", "authorization_code")
+            .AddParameter("code", authorizationCode)
+            .AddParameter("redirect_uri", discord.RedirectUri);
+
+        var restResponse = await restClient.ExecuteAsync(restRequest);
+
+        // Exchange code for token
+        using var http = new HttpClient();
+        var tokenResponse = await http.PostAsync("https://discord.com/api/oauth2/token", new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = discord.ClientId,
+                ["client_secret"] = discord.ClientSecret,
+                ["grant_type"] = "authorization_code",
+                ["code"] = authorizationCode,
+                ["redirect_uri"] = discord.RedirectUri
+            }));
+
+        tokenResponse.EnsureSuccessStatusCode();
+        var tokenJson = JsonDocument.Parse(await tokenResponse.Content.ReadAsStringAsync());
+        var accessToken = tokenJson.RootElement.GetProperty("access_token").GetString();
+
+        // Use token to get user info
+        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        var userInfoResponse = await http.GetAsync("https:discord.com/api/users/@me");
+        userInfoResponse.EnsureSuccessStatusCode();
+        var userInfo = JsonDocument.Parse(await userInfoResponse.Content.ReadAsStringAsync());
+
+        var email = userInfo.RootElement.GetProperty("email").GetString();
+    }
+}

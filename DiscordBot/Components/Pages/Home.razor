@@ -1,7 +1,12 @@
 ﻿@page "/"
+@using DiscordBot.Business.Helpers.Blazor
+@using DiscordBot.Components.Auth
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Home</h1>
+<a href="@CallbackUrl">Authenticate here: @CallbackUrl</a>
 
-Welcome to your new app.
+@code {
+    static readonly string CallbackUrl = Common.GetRelativeRoute<DiscordAuthorization>() ?? "/Error";
+}

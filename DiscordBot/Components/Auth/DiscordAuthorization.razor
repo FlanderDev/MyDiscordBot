@@ -1,0 +1,27 @@
+﻿@using System.Text
+@using DiscordBot.Models.Internal
+@using Microsoft.Extensions.Options
+@using Serilog
+@page "/Auth/Discord"
+@inherits LayoutComponentBase
+@inject IOptions<Configuration> Options
+
+@{
+    var authUrl = CreateAuthUrl(Options.Value.Discord);
+    Log.Verbose("Serving oAuth2 url: {url}", authUrl);
+}
+
+<h3>Please Authorize us to access some of your discord information.</h3>
+<a href="@authUrl">Auth-link</a>
+
+@code
+{
+    private static string CreateAuthUrl(Discord config) =>
+        new StringBuilder("https://discord.com/api/oauth2/authorize?client_id=")
+            .Append(config.ClientId)
+            .Append("&redirect_uri=")
+            .Append(Uri.EscapeDataString(config.RedirectUri))
+            .Append("&response_type=code&scope=")
+            .Append(Uri.EscapeDataString(config.Scopes))
+            .ToString();
+}
