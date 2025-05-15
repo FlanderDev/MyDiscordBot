@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using System.Diagnostics;
 
-namespace DiscordBot.Business.Helpers;
+namespace DiscordBot.Business.Helpers.Bot;
 internal static class ProcessHelper
 {
     internal static async Task<(string? info, string? error)?> StartProcessAsync(string fileName, params IEnumerable<string> arguments)

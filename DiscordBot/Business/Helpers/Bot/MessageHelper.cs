@@ -1,7 +1,6 @@
-﻿
-using System.Drawing;
+﻿using System.Drawing;
 
-namespace DiscordBot.Business.Helpers;
+namespace DiscordBot.Business.Helpers.Bot;
 
 internal static class MessageHelper
 {

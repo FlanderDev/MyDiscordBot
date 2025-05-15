@@ -2,7 +2,7 @@
 using RestSharp;
 using Serilog;
 
-namespace DiscordBot.Business.Helpers;
+namespace DiscordBot.Business.Helpers.Bot;
 internal static class GitHubHelper
 {
     internal static async Task<bool> DownloadGithubReleaseAsync(

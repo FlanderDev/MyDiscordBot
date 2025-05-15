@@ -3,15 +3,16 @@ using RestSharp;
 using Serilog;
 using System.Text.Json;
 
-namespace DiscordBot.Business.Helpers;
+namespace DiscordBot.Business.Helpers.Bot;
 
 internal static class DanbooruHelper
 {
     private const string DomainAddress = "https://danbooru.donmai.us";
+    internal static string ApiUsername = string.Empty;
     internal static string ApiKey = string.Empty;
     private static RestRequest GetLoginRequest(string resource)
                     => new RestRequest(resource)
-                        .AddQueryParameter("login", "Akayaaa")
+                        .AddQueryParameter("login", ApiUsername)
                         .AddQueryParameter("api_key", ApiKey);
 
 

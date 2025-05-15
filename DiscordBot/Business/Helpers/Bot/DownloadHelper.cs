@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using System.Text;
 
-namespace DiscordBot.Business.Helpers;
+namespace DiscordBot.Business.Helpers.Bot;
 
 internal static class DownloadHelper
 {

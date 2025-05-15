@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using DiscordBot.Business.Helpers;
+using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Data;
 using DiscordBot.Models.Enteties;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace DiscordBot.Business.Commands;
 
 public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
 {
-    //TODO: Add logging
+    //TODO: Add more logging
     [Command("!clip")]
     public async Task CreateClipAsync(params string[] data)
     {

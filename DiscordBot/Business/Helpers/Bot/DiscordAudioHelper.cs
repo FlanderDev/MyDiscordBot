@@ -1,7 +1,7 @@
 ﻿using Discord.Audio;
 using System.Diagnostics;
 
-namespace DiscordBot.Business.Helpers;
+namespace DiscordBot.Business.Helpers.Bot;
 
 internal sealed class DiscordAudioHelper(IAudioClient audioClient) : IDisposable
 {
