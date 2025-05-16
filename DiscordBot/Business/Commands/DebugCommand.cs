@@ -44,8 +44,12 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
 
             Log.Information("Executing debug command '{text}'.", text);
             await using var databaseContext = new DatabaseContext();
-            switch (text)
+            switch (text.ToLower())
             {
+                case "ping":
+                    await message.ReplyAsync("pong");
+                    break;
+
                 case "update":
                     var result = await DownloadHelper.UpdateYtDlpAsync() ? "succeeded" : "failed";
                     await message.ReplyAsync($"Update {result}");

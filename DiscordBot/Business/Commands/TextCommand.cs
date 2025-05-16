@@ -1,15 +1,15 @@
 ﻿using Discord.Commands;
 using DiscordBot.Business.Services;
-using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 namespace DiscordBot.Business.Commands;
 
-public sealed class TextCommand([FromServices] DanbooruService danbooruService) : ModuleBase<SocketCommandContext>
+public sealed class TextCommand(DanbooruService danbooruService) : ModuleBase<SocketCommandContext>
 {
     [Command("holobots")]
     public async Task HoloBotsAsync()
     {
+        //DanbooruService danbooruService = null;
         try
         {
             Log.Debug("Executing HoloBots.");
@@ -45,6 +45,7 @@ public sealed class TextCommand([FromServices] DanbooruService danbooruService) 
     [Command("InaPun")]
     public async Task InaPanAsync()
     {
+        //DanbooruService danbooruService = null;
         try
         {
             Log.Debug("Executing InaPun.");

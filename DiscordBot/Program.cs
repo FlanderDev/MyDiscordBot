@@ -51,7 +51,6 @@ try
         .AddScoped<DanbooruService>()
         .AddHostedService<DiscordNet>();
 
-
     builder.Services
         .AddRazorComponents()
         .AddInteractiveServerComponents();

@@ -1,6 +1,6 @@
 # WORK IN PROGRESS
 
-## Hi there
+## Hallo there
 This is my perosnal project of a Discord-Bot.
 It is NOT intended as an actual good Bot for Discord, but more so as a personal excersie.
 Simply said; I want to add as much mid-large featrues into it, as I can.
