@@ -1,23 +1,23 @@
 ﻿using DiscordBot.Models.Danbooru;
+using DiscordBot.Models.Internal.Configs;
+using Microsoft.Extensions.Options;
 using RestSharp;
 using Serilog;
 using System.Text.Json;
 
-namespace DiscordBot.Business.Helpers.Bot;
+namespace DiscordBot.Business.Services;
 
-internal static class DanbooruHelper
+public sealed class DanbooruService(IOptions<Configuration> options)
 {
     private const string DomainAddress = "https://danbooru.donmai.us";
-    internal static string ApiUsername = string.Empty;
-    internal static string ApiKey = string.Empty;
-    private static RestRequest GetLoginRequest(string resource)
+    private RestRequest GetLoginRequest(string resource)
                     => new RestRequest(resource)
-                        .AddQueryParameter("login", ApiUsername)
-                        .AddQueryParameter("api_key", ApiKey);
+                        .AddQueryParameter("login", options.Value.Danbooru.Username)
+                        .AddQueryParameter("api_key", options.Value.Danbooru.Token);
 
 
-    internal static Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);
-    internal static async Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(int setIndex = -1, params string[] tags)
+    internal Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);
+    internal async Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(int setIndex = -1, params string[] tags)
     {
         try
         {

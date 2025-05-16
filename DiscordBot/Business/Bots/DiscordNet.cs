@@ -2,7 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Business.Commands;
-using DiscordBot.Models.Internal;
+using DiscordBot.Models.Internal.Configs;
 using Microsoft.Extensions.Options;
 using Serilog;
 using System.Diagnostics;

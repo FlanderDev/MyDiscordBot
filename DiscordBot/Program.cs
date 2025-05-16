@@ -1,7 +1,8 @@
 using DiscordBot.Business.Bots;
+using DiscordBot.Business.Services;
 using DiscordBot.Components;
 using DiscordBot.Data;
-using DiscordBot.Models.Internal;
+using DiscordBot.Models.Internal.Configs;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
@@ -44,8 +45,12 @@ try
     builder.Services
         .AddSerilog()
         .AddHttpContextAccessor()
-        //.AddHostedService<DiscordNet>()
         .AddHealthChecks();
+
+    builder.Services
+        .AddScoped<DanbooruService>()
+        .AddHostedService<DiscordNet>();
+
 
     builder.Services
         .AddRazorComponents()

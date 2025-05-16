@@ -1,6 +1,6 @@
-﻿using System.Reflection;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Serilog;
+using System.Reflection;
 
 namespace DiscordBot.Business.Helpers.Blazor;
 

@@ -1,10 +1,11 @@
 ﻿using Discord.Commands;
-using DiscordBot.Business.Helpers.Bot;
+using DiscordBot.Business.Services;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 namespace DiscordBot.Business.Commands;
 
-public sealed class TextCommand : ModuleBase<SocketCommandContext>
+public sealed class TextCommand([FromServices] DanbooruService danbooruService) : ModuleBase<SocketCommandContext>
 {
     [Command("holobots")]
     public async Task HoloBotsAsync()
@@ -17,7 +18,7 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
 
             if (botId == 1302467929761120347) // Kumo
             {
-                var (imageUrl, imageIndex) = await DanbooruHelper.GetRandomImageByTagAsync("+shiraori", "+solo");
+                var (imageUrl, imageIndex) = await danbooruService.GetRandomImageByTagAsync("+shiraori", "+solo");
                 if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("YOU WORM! You won't receive ANY images from me!");
                 else
@@ -25,7 +26,7 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
             }
             else if (botId == 995955672934006784) //Ina
             {
-                var (imageUrl, imageIndex) = await DanbooruHelper.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
+                var (imageUrl, imageIndex) = await danbooruService.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
                 if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("Sowy Tako <3, I, couldn't fetch any images, maybe next time^^");
                 else
@@ -40,7 +41,7 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
         }
     }
 
-    private static int PunCounter = -1;
+    private static int _punCounter = -1;
     [Command("InaPun")]
     public async Task InaPanAsync()
     {
@@ -51,11 +52,11 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
             if (Context.Client.CurrentUser.Id != 995955672934006784) //Ina
                 return;
 
-            var (imageUrl, imageIndex) = await DanbooruHelper.GetRandomImageByTagAsync(PunCounter, "+ninomae_ina'nis", "+pun");
+            var (imageUrl, imageIndex) = await danbooruService.GetRandomImageByTagAsync(_punCounter, "+ninomae_ina'nis", "+pun");
             if (imageUrl == null)
             {
-                PunCounter = imageIndex++;
-                await Context.Channel.SendMessageAsync("I'm not felling *pan*Tastic.");
+                _punCounter = ++imageIndex;
+                await Context.Channel.SendMessageAsync("I'm not felling *pun*Tastic.");
             }
             else
                 await Context.Channel.SendMessageAsync(imageUrl);
