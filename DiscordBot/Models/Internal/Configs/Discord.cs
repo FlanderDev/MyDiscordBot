@@ -1,4 +1,4 @@
-﻿namespace DiscordBot.Models.Internal;
+﻿namespace DiscordBot.Models.Internal.Configs;
 
 public sealed class Discord
 {
