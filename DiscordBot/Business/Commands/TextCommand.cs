@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using DiscordBot.Business.Services;
-using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 namespace DiscordBot.Business.Commands;

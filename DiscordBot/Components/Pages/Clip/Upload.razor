@@ -1,40 +1,107 @@
-﻿@using System.Net.Http.Headers
-@using System.Text
-@using System.Text.Json
+﻿@page "/Clip/Upload"
 @rendermode InteractiveServer
-@page "/Clip/Upload"
+@inject IOptions<Configuration> Options
+@using DiscordBot.Business.Helpers.Bot
+@using DiscordBot.Models.Internal.Configs
+@using Microsoft.Extensions.Options
+@using Serilog
 
-<h1>Upload</h1>
-<InputFile OnChange="OnFileChagneAsync" multiple />
-<p>@(string.IsNullOrWhiteSpace(StatusMessage) ? "Select files." : StatusMessage)</p>
 
-@if (UploadedFiles.Count > 0)
-{
-    <ul>
-        @foreach (var file in UploadedFiles)
+<InputFile OnChange="HandleSelectedFiles" AdditionalAttributes="InputFileAttribute" />
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nr.</th>
+            <th>File</th>
+            <th>Progress</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (var index = 0; index < _fileUploadStatuses.Count; index++)
         {
-            <li>@file.Name (@file.Size / 1024) KB</li>
+            var fileStatus = _fileUploadStatuses[index];
+            <tr>
+                <td>@index</td>
+                <td>@fileStatus.File.Name</td>
+                <td>
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar" role="progressbar"
+                             style="width: @fileStatus.Progress%" aria-valuenow="@fileStatus.Progress"
+                             aria-valuemin="0" aria-valuemax="100">
+                            @($"{fileStatus.Progress}%")
+                        </div>
+                    </div>
+                </td>
+                <td>@fileStatus.Status</td>
+            </tr>
         }
-    </ul>
-}
+    </tbody>
+</table>
 
 @code {
-    private List<IBrowserFile> UploadedFiles { get; set; } = [];
-    private string StatusMessage { get; set; } = string.Empty;
-
-    private async Task OnFileChagneAsync(InputFileChangeEventArgs e)
+    private readonly List<FileUploadStatus> _fileUploadStatuses = [];
+    private static readonly Dictionary<string, object> InputFileAttribute = new()
     {
-        UploadedFiles = e.GetMultipleFiles().ToList();
-        StatusMessage = $"Processing {UploadedFiles.Count} files...";
+        { "accept", ".mp3, .ogg, .mp4" },
+        { "multiple", true }
+    };
 
-        var tasks = UploadedFiles.Select(async f =>
+    private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
+    {
+        _fileUploadStatuses.Clear();
+
+        foreach (var file in e.GetMultipleFiles(int.MaxValue))
         {
-            var buffer = new byte[f.Size];
-            using var stream = f.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB max
-            await stream.ReadAsync(buffer);
-        }).ToArray();
+            var status = new FileUploadStatus
+                {
+                    File = file,
+                    Status = "Uploading...",
+                    Progress = 0
+                };
 
-        await Task.WhenAll(tasks);
-        StatusMessage = $"{UploadedFiles.Count} file(s) uploaded.";
+            try
+            {
+                _fileUploadStatuses.Add(status);
+                StateHasChanged();
+
+                var buffer = new byte[81920]; // 80KB chunks
+                long totalRead = 0;
+                var total = file.Size;
+
+                var uploadDirectory = FileManager.GetFileUploadDirectory();
+                var uploadPath = Path.Combine(uploadDirectory.FullName, file.Name);
+
+                await using var fileStream = File.Create(uploadPath);
+                var fileSize = (long)1024 * 1024 * Options.Value.Blazor.FileSizeLimitMb;
+                await using var stream = file.OpenReadStream(maxAllowedSize: fileSize);
+
+                int bytesRead;
+                while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                    totalRead += bytesRead;
+
+                    status.Progress = (int)((totalRead * 100) / total);
+                    StateHasChanged(); // updates the progress bar
+                }
+
+                status.Status = "Uploaded ✅";
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to upload file.");
+                status.Status = $"Failed ❌ ({ex.Message})";
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    internal sealed class FileUploadStatus
+    {
+        public required IBrowserFile File { get; init; }
+        public int Progress { get; set; }
+        public string Status { get; set; } = "Waiting...";
     }
 }

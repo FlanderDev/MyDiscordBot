@@ -1,5 +1,5 @@
 ﻿using DiscordBot.Business.Helpers.Bot;
-using DiscordBot.Models.Enteties;
+using DiscordBot.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 

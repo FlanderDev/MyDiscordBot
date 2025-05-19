@@ -2,7 +2,7 @@
 using Discord.Commands;
 using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Data;
-using DiscordBot.Models.Enteties;
+using DiscordBot.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 

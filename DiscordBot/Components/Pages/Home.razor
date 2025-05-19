@@ -6,12 +6,15 @@
 <PageTitle>Home</PageTitle>
 
 <h1>Home</h1>
-<a href="@CallbackUrl">Authenticate here: @CallbackUrl</a>
+<a href="@CallbackUrl">@CallbackUrl</a>
 <br />
-<a href="@ClipUpload">Authenticate here: @ClipUpload</a>
+<a href="@ClipManaging">@ClipManaging</a>
+<br />
+<a href="@ClipUpload">@ClipUpload</a>
 
 
 @code {
     static readonly string CallbackUrl = Common.GetRelativeRoute<DiscordAuthorization>() ?? "/Error";
+    static readonly string ClipManaging = Common.GetRelativeRoute<Managing>() ?? "/Error";
     static readonly string ClipUpload = Common.GetRelativeRoute<Upload>() ?? "/Error";
 }

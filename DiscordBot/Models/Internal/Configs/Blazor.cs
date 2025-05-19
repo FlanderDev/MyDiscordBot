@@ -2,5 +2,8 @@
 
 public sealed class Blazor
 {
-    public int FileSizeLimitMb { get; set; } = 1024;
+    /// <summary>
+    /// Defaults to 100MB, can be overwritten via configuration.
+    /// </summary>
+    public int FileSizeLimitMb { get; set; } = 100;
 }

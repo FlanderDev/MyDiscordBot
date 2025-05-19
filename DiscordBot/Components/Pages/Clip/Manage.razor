@@ -1,0 +1,26 @@
+﻿@page "/Clip/Manage"
+@using DiscordBot.Data
+@using Microsoft.EntityFrameworkCore
+@inject DatabaseContext DatabaseContext
+
+<h3>Clip-Manager</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>CallCode</th>
+            <th>FileName</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var audioClip in DatabaseContext.AudioClips.AsNoTracking())
+        {
+            <tr>
+                <td>@audioClip.Id</td>
+                <td>@audioClip.CallCode</td>
+                <td>@audioClip.FileName</td>
+            </tr>
+        }
+    </tbody>
+</table>

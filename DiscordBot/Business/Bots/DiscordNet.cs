@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using System.Diagnostics;
 using System.Reflection;
-using DiscordBot.Business.Services;
 
 namespace DiscordBot.Business.Bots;
 
@@ -36,7 +35,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
 
             var botBooting = new TaskCompletionSource();
             DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult, cancellationToken);
-
+            DiscordSocketClient.Disconnected += async _ => await StopAsync(cancellationToken);
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
             await DiscordSocketClient.LoginAsync(TokenType.Bot, options.Value.Discord.Token);
             await DiscordSocketClient.StartAsync();
@@ -65,7 +64,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
             throw new Exception("The bot failed to initialize.", ex);
         }
     }
-    
+
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         try
@@ -73,6 +72,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
             Log.Information("Stopping {name}...", nameof(DiscordNet));
             await DiscordSocketClient.LogoutAsync();
             await DiscordSocketClient.StopAsync();
+            Log.Information("Stopped {name}.", nameof(DiscordNet));
         }
         catch (Exception ex)
         {

@@ -1,5 +1,4 @@
 using DiscordBot.Business.Bots;
-using DiscordBot.Business.Services;
 using DiscordBot.Components;
 using DiscordBot.Data;
 using DiscordBot.Models.Internal.Configs;
@@ -30,7 +29,7 @@ try
         .AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true)
         .AddEnvironmentVariables();
 
-    // this kinda of validation is... special :d
+    // this kind of validation is... special :d
     builder.Services.Configure<Configuration>(builder.Configuration)
         .AddOptionsWithValidateOnStart<Configuration>()
         .Validate(RecursivelyNotNullOrWhiteSpace)
@@ -48,9 +47,9 @@ try
         .AddHealthChecks();
 
     builder.Services
-        .AddScoped<DanbooruService>()
+        .AddDbContext<DatabaseContext>()
+        //.AddScoped<DanbooruService>()
         .AddHostedService<DiscordNet>();
-    //.AddSingleton(f => new DiscordNet(f.GetRequiredService<IOptions<Configuration>>(), f));
 
     builder.Services
         .AddRazorComponents()
