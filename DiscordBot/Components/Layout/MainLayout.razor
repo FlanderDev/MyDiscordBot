@@ -1,11 +1,37 @@
-﻿@inherits LayoutComponentBase
-
-<h5>BodyStart</h5>
+﻿@using System.Text
+@using DiscordBot.Models.Internal.Configs
+@using Microsoft.Extensions.Options
+@inherits LayoutComponentBase
+@inject IHttpContextAccessor Context
+@inject IOptions<Configuration> Options
+<header>
+    <h1>HEADER</h1>
+    @if (Context.HttpContext?.User.Identity == null)
+    {
+        <a href="@CreateAuthUrl(Options.Value.Discord)">Authenticate with Discord</a>
+    }
+    else
+    {
+        <p>Welcome, <b>@Context.HttpContext.User.Identity.Name</b></p>
+    }
+    <p>------</p>
+</header>
 @Body
-<h5>BodyEnd</h5>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code
+{
+    private static string CreateAuthUrl(Discord config) =>
+        new StringBuilder("https://discord.com/api/oauth2/authorize?client_id=")
+            .Append(config.ClientId)
+            .Append("&redirect_uri=")
+            .Append(Uri.EscapeDataString(config.RedirectUri))
+            .Append("&response_type=code&scope=")
+            .Append(Uri.EscapeDataString(config.Scopes))
+            .ToString();
+}

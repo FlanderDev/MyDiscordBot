@@ -2,10 +2,13 @@ using DiscordBot.Business.Bots;
 using DiscordBot.Components;
 using DiscordBot.Data;
 using DiscordBot.Models.Internal.Configs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 try
 {
@@ -46,6 +49,12 @@ try
         .AddHttpContextAccessor()
         .AddHealthChecks();
 
+    // TODO: Dependency Injection resolve problem.
+    // I want to use DI so services can be used in the DiscordCommands.
+    // However, doing right now results in an error, because the commands get their scope by the registered DiscordNet instance,
+    // and if a command then requires a service, it can't be resolved by the following code in DiscordNet:
+    // await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
+    // TL;DR: Problem for future me.
     builder.Services
         .AddDbContext<DatabaseContext>()
         //.AddScoped<DanbooruService>()
@@ -55,11 +64,24 @@ try
         .AddRazorComponents()
         .AddInteractiveServerComponents();
 
+    builder.Services
+        .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(o =>
+        {
+            o.LoginPath = "/User/Login";
+            o.LogoutPath = "/User/Logout";
+        });
+
+    builder.Services.AddControllers();
+
     var app = builder.Build();
     if (!app.Environment.IsDevelopment())
         app.UseExceptionHandler("/Error", createScopeForErrors: true);
 
+    app.UseAuthentication();
     app.UseAntiforgery();
+
+    app.MapControllers();
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();

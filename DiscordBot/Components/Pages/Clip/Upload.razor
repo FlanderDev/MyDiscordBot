@@ -22,13 +22,13 @@
         {
             var fileStatus = _fileUploadStatuses[index];
             <tr>
-                <td>@index</td>
+                <td>@(index + 1)</td>
                 <td>@fileStatus.File.Name</td>
                 <td>
                     <div class="progress" style="height: 20px;">
                         <div class="progress-bar" role="progressbar"
-                             style="width: @fileStatus.Progress%" aria-valuenow="@fileStatus.Progress"
-                             aria-valuemin="0" aria-valuemax="100">
+                        style="width: @fileStatus.Progress%" aria-valuenow="@fileStatus.Progress"
+                        aria-valuemin="0" aria-valuemax="100">
                             @($"{fileStatus.Progress}%")
                         </div>
                     </div>
@@ -38,19 +38,23 @@
         }
     </tbody>
 </table>
+<p>@Message</p>
 
 @code {
+    private string Message { get; set; } = string.Empty;
     private readonly List<FileUploadStatus> _fileUploadStatuses = [];
+    private static IReadOnlyCollection<string> _validExtensions = [".mp3", ".ogg", ".mp4"];
     private static readonly Dictionary<string, object> InputFileAttribute = new()
     {
-        { "accept", ".mp3, .ogg, .mp4" },
+        { "accept", string.Join(", ", _validExtensions) },
         { "multiple", true }
     };
 
     private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
     {
-        _fileUploadStatuses.Clear();
+        Message = "Processing...";
 
+        _fileUploadStatuses.Clear();
         foreach (var file in e.GetMultipleFiles(int.MaxValue))
         {
             var status = new FileUploadStatus
@@ -82,7 +86,7 @@
                     await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
                     totalRead += bytesRead;
 
-                    status.Progress = (int)((totalRead * 100) / total);
+                    status.Progress = (int)(totalRead * 100 / total);
                     StateHasChanged(); // updates the progress bar
                 }
 
@@ -96,6 +100,8 @@
 
             StateHasChanged();
         }
+
+        Message = "Done";
     }
 
     internal sealed class FileUploadStatus

@@ -95,7 +95,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
             Log.Verbose("Received message from '{user}': '{message}'", message.Author, message.Content);
             await _commands.ExecuteAsync(
                 new SocketCommandContext(DiscordSocketClient, message),
-                message.Content, null);
+                message.Content, serviceProvider);
         }
         catch (Exception ex)
         {

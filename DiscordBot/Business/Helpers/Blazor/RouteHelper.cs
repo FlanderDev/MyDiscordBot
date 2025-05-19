@@ -1,11 +1,18 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using DiscordBot.Components.Pages.Clip;
+using Microsoft.AspNetCore.Components;
 using Serilog;
 using System.Reflection;
+using DiscordBot.Components.Pages;
 
 namespace DiscordBot.Business.Helpers.Blazor;
 
-public static class Common
+public static class RouteHelper
 {
+    internal static readonly string Home = GetRelativeRoute<Home>() ?? "/Error";
+    internal static readonly string Error = GetRelativeRoute<Error>() ?? "/Error";
+    internal static readonly string ClipManaging = GetRelativeRoute<Manage>() ?? "/Error";
+    internal static readonly string ClipUpload = GetRelativeRoute<Upload>() ?? "/Error";
+
     public static string? GetRelativeRoute<T>() where T : ComponentBase
     {
         var type = typeof(T);
