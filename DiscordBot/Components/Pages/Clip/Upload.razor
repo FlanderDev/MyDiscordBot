@@ -1,8 +1,11 @@
 ﻿@page "/Clip/Upload"
+@attribute [Authorize]
 @rendermode InteractiveServer
 @inject IOptions<Configuration> Options
+
 @using DiscordBot.Business.Helpers.Bot
 @using DiscordBot.Models.Internal.Configs
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Options
 @using Serilog
 

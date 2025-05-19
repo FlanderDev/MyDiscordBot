@@ -12,10 +12,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DiscordBot.Components.User;
-public sealed class UserController([FromServices] IHttpContextAccessor httpContextAccessor) : Controller
+public sealed class UserController([FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] IOptions<Configuration> options) : Controller
 {
     [Route("/User/DiscordOAuth2")]
-    public async Task<IActionResult> OnLoginDiscordAsync([FromServices] IOptions<Configuration> options)
+    public async Task<IActionResult> OnLoginDiscordAsync()
     {
         try
         {
@@ -74,7 +74,7 @@ public sealed class UserController([FromServices] IHttpContextAccessor httpConte
     }
 
     [Route("/User/Login")]
-    public async Task<IActionResult> OnLoginAsync()
+    public IActionResult OnLogin()
     {
         if (httpContextAccessor.HttpContext == null)
         {
@@ -82,8 +82,8 @@ public sealed class UserController([FromServices] IHttpContextAccessor httpConte
             return Redirect(RouteHelper.Home);
         }
 
-        await httpContextAccessor.HttpContext.SignOutAsync();
-        return Redirect(RouteHelper.Home);
+        var authLink = RouteHelper.CreateAuthUrl(options.Value.Discord);
+        return Redirect(authLink);
     }
 
     [Route("/User/Logout")]

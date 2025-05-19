@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Serilog;
 using System.Reflection;
 using DiscordBot.Components.Pages;
+using System.Text;
 
 namespace DiscordBot.Business.Helpers.Blazor;
 
@@ -12,6 +13,15 @@ public static class RouteHelper
     internal static readonly string Error = GetRelativeRoute<Error>() ?? "/Error";
     internal static readonly string ClipManaging = GetRelativeRoute<Manage>() ?? "/Error";
     internal static readonly string ClipUpload = GetRelativeRoute<Upload>() ?? "/Error";
+
+    internal static string CreateAuthUrl(Models.Internal.Configs.Discord config) =>
+        new StringBuilder("https://discord.com/api/oauth2/authorize?client_id=")
+            .Append(config.ClientId)
+            .Append("&redirect_uri=")
+            .Append(Uri.EscapeDataString(config.RedirectUri))
+            .Append("&response_type=code&scope=")
+            .Append(Uri.EscapeDataString(config.Scopes))
+            .ToString();
 
     public static string? GetRelativeRoute<T>() where T : ComponentBase
     {
