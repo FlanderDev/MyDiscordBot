@@ -1,12 +1,17 @@
 ﻿@page "/"
 @using DiscordBot.Business.Helpers.Blazor
 @using DiscordBot.Components.Auth
+@using DiscordBot.Components.Pages.Clip
 
 <PageTitle>Home</PageTitle>
 
 <h1>Home</h1>
 <a href="@CallbackUrl">Authenticate here: @CallbackUrl</a>
+<br />
+<a href="@ClipUpload">Authenticate here: @ClipUpload</a>
+
 
 @code {
     static readonly string CallbackUrl = Common.GetRelativeRoute<DiscordAuthorization>() ?? "/Error";
+    static readonly string ClipUpload = Common.GetRelativeRoute<Upload>() ?? "/Error";
 }

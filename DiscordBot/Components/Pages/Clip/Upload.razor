@@ -1,11 +1,40 @@
 ﻿@using System.Net.Http.Headers
 @using System.Text
 @using System.Text.Json
-@inject HttpContext HttpContext
+@rendermode InteractiveServer
+@page "/Clip/Upload"
 
-<h3>Upload</h3>
-<h4>@(HttpContext.Request.Query["code"])</h4>
+<h1>Upload</h1>
+<InputFile OnChange="OnFileChagneAsync" multiple />
+<p>@(string.IsNullOrWhiteSpace(StatusMessage) ? "Select files." : StatusMessage)</p>
+
+@if (UploadedFiles.Count > 0)
+{
+    <ul>
+        @foreach (var file in UploadedFiles)
+        {
+            <li>@file.Name (@file.Size / 1024) KB</li>
+        }
+    </ul>
+}
 
 @code {
+    private List<IBrowserFile> UploadedFiles { get; set; } = [];
+    private string StatusMessage { get; set; } = string.Empty;
 
+    private async Task OnFileChagneAsync(InputFileChangeEventArgs e)
+    {
+        UploadedFiles = e.GetMultipleFiles().ToList();
+        StatusMessage = $"Processing {UploadedFiles.Count} files...";
+
+        var tasks = UploadedFiles.Select(async f =>
+        {
+            var buffer = new byte[f.Size];
+            using var stream = f.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB max
+            await stream.ReadAsync(buffer);
+        }).ToArray();
+
+        await Task.WhenAll(tasks);
+        StatusMessage = $"{UploadedFiles.Count} file(s) uploaded.";
+    }
 }

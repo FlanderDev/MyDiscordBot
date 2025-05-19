@@ -50,6 +50,7 @@ try
     builder.Services
         .AddScoped<DanbooruService>()
         .AddHostedService<DiscordNet>();
+    //.AddSingleton(f => new DiscordNet(f.GetRequiredService<IOptions<Configuration>>(), f));
 
     builder.Services
         .AddRazorComponents()
@@ -67,6 +68,7 @@ try
     app.MapHealthChecks("/status");
 
     Log.Verbose("Running web application.");
+
     app.Run();
 
     Log.Information("Application ran to completion.");

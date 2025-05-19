@@ -34,29 +34,24 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
                 throw new ArgumentException("The token is invalid.");
             }
 
-            using var scope = serviceProvider.CreateScope();
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
-
             var botBooting = new TaskCompletionSource();
             DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult, cancellationToken);
 
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
             await DiscordSocketClient.LoginAsync(TokenType.Bot, options.Value.Discord.Token);
             await DiscordSocketClient.StartAsync();
 
 
             Log.Information("Bot starting...");
             var stopwatch = Stopwatch.StartNew();
-            await botBooting.Task;
-
+            await botBooting.Task.WaitAsync(cancellationToken);
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
             if (await DiscordSocketClient.GetChannelAsync(1270659363132145796) is ITextChannel textChannel)
             {
                 DebugChannel = textChannel;
-#if !DEBUG
-                await textChannel.SendMessageAsync( $"It's {DateTime.Now:T} and I'm ready to fuck shit up!");
-#endif
+                await textChannel.SendMessageAsync($"It's {DateTime.Now:T} and I'm ready to fuck shit up!");
             }
 
             DiscordSocketClient.MessageReceived += MessageReceivedAsync;
