@@ -32,7 +32,7 @@
                 <td>
                     <div class="progress" style="height: 20px;">
                         <div class="progress-bar" role="progressbar"
-                             style="width: @(fileStatus.Progress)%" aria-valuenow="@fileStatus.Progress"
+                             style="width: @(fileStatus.Progress) %" aria-valuenow="@fileStatus.Progress"
                              aria-valuemin="0" aria-valuemax="100">
                             @($"{fileStatus.Progress}%")
                         </div>
@@ -63,8 +63,6 @@
         var discordClaim = ContextAccessor.HttpContext?.User.Claims.FirstOrDefault(f => f.Type.Equals(ClaimTypes.Sid));
         Message = "Processing...";
         _fileUploadStatuses.Clear();
-        StateHasChanged();
-
         if (discordClaim == null)
         {
             Message = "Could not validate your credentials, please reload.";
@@ -77,11 +75,20 @@
             return;
         }
 
-        foreach (var file in e.GetMultipleFiles(int.MaxValue))
+        foreach (var browserFile in e.GetMultipleFiles(int.MaxValue))
+        {
+            await SaveFileAddClipAsync(browserFile);
+            StateHasChanged();
+        }
+
+        Message = "Done";
+        return;
+
+        async Task SaveFileAddClipAsync(IBrowserFile browserFile)
         {
             var status = new FileUploadStatus
                 {
-                    File = file,
+                    File = browserFile,
                     Status = "Uploading...",
                     Progress = 0
                 };
@@ -93,12 +100,12 @@
 
                 var buffer = new byte[81920]; // 80 KB chunks
                 long totalRead = 0;
-                var total = file.Size;
+                var total = browserFile.Size;
 
-                var uploadPath = Path.Combine(FileManager.GetFileUploadDirectory(), file.Name);
+                var uploadPath = Path.Combine(FileManager.GetFileUploadDirectory(), browserFile.Name);
                 await using var fileStream = File.Create(uploadPath);
                 var fileSize = 1048576L * Options.Value.Blazor.FileSizeLimitMb;
-                await using var stream = file.OpenReadStream(maxAllowedSize: fileSize);
+                await using var stream = browserFile.OpenReadStream(maxAllowedSize: fileSize);
 
                 int bytesRead;
                 while ((bytesRead = await stream.ReadAsync(buffer)) > 0)
@@ -112,7 +119,7 @@
 
                 var audioClip = new AudioClip
                     {
-                        CallCode = Path.GetFileNameWithoutExtension(file.Name),
+                        CallCode = Path.GetFileNameWithoutExtension(browserFile.Name),
                         DiscordUserId = discordId,
                         FilePath = uploadPath
                     };
@@ -127,11 +134,7 @@
                 Log.Error(ex, "Error uploading file.");
                 status.Status = $"Error ❌ ({ex.Message})";
             }
-
-            StateHasChanged();
         }
-
-        Message = "Done";
     }
 
     private sealed class FileUploadStatus
