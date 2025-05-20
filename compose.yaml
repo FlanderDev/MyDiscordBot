@@ -4,5 +4,10 @@ services:
       context: . # Use the current directory as the build context
       dockerfile: Dockerfile
     environment:
-      - DiscordBot:Token=${DISCORD_TOKEN}
+      - Discord:Token=${DISCORD_TOKEN}
+      - Discord:ClientId=${DISCORD_CLIENTID}
+      - Discord:RedirectUrl=${DISCORD_REDIRECTURI}
+      - Discord:ClientSecret=${DISCORD_CLIENTSECRET}
+      - Discord:Scopes=${DISCORD_SCOPES}
+      - Danbooru:Username=${DANBOORU_USERNAME}
       - Danbooru:Token=${DANBOORU_TOKEN}
