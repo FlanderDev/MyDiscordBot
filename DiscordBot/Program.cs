@@ -2,13 +2,11 @@ using DiscordBot.Business.Bots;
 using DiscordBot.Components;
 using DiscordBot.Data;
 using DiscordBot.Models.Internal.Configs;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 
 try
 {
@@ -24,6 +22,7 @@ try
 
 
     var builder = WebApplication.CreateBuilder(args);
+    builder.WebHost.UseUrls("http://*:42069", "https://*:42069");
     builder.Host.UseSerilog(Log.Logger);
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(Log.Logger);
