@@ -51,7 +51,7 @@ internal static class DownloadHelper
             return null;
         }
 
-        var mediaDirectory = FileManager.GetMediaDirectory();
+        var mediaDirectory = FileHelper.GetMediaDirectory();
         if (!Directory.Exists(mediaDirectory))
             Directory.CreateDirectory(mediaDirectory);
 

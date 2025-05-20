@@ -102,7 +102,7 @@
                 long totalRead = 0;
                 var total = browserFile.Size;
 
-                var uploadPath = Path.Combine(FileManager.GetFileUploadDirectory(), browserFile.Name);
+                var uploadPath = Path.Combine(FileHelper.GetFileUploadDirectory(), browserFile.Name);
                 await using var fileStream = File.Create(uploadPath);
                 var fileSize = 1048576L * Options.Value.Blazor.FileSizeLimitMb;
                 await using var stream = browserFile.OpenReadStream(maxAllowedSize: fileSize);

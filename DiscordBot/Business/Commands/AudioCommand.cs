@@ -26,7 +26,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
                 break;
 
             var araUrl = $"https://faunaraara.com/sounds/ara-{i}.mp3";
-            var audioResource = await FileManager.GetLocalResourceOrDownloadAsync($"ara-{i}.mp3", araUrl);
+            var audioResource = await FileHelper.GetLocalResourceOrDownloadAsync($"ara-{i}.mp3", araUrl);
             if (audioResource == null)
             {
                 await Context.Channel.SendMessageAsync("Your not in a VC, gomenasorry.");
@@ -74,7 +74,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
                 if (araId == -1)
                     _ = Context.Channel.SendMessageAsync($"[Ara-{num}]({araUrl})");
 
-                var audioResource = await FileManager.GetLocalResourceOrDownloadAsync($"ara-{num}.mp3", araUrl);
+                var audioResource = await FileHelper.GetLocalResourceOrDownloadAsync($"ara-{num}.mp3", araUrl);
                 await audioHelper.PlayAudioAsync(araUrl);
             }
         }

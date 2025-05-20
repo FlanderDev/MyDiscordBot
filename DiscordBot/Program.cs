@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
+using DiscordBot.Business.Helpers.Bot;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 try
@@ -34,8 +35,13 @@ try
     // this kind of validation is... special :d
     builder.Services.Configure<Configuration>(builder.Configuration)
         .AddOptionsWithValidateOnStart<Configuration>()
-        .Validate(RecursivelyNotNullOrWhiteSpace)
+        .Validate(StartupHelper.RecursivelyNotNullOrWhiteSpace)
         .ValidateOnStart();
+
+    builder.Services
+        .AddSerilog()
+        .AddHttpContextAccessor()
+        .AddHealthChecks();
 
     if (!DatabaseContext.CreateDefault())
     {
@@ -43,10 +49,11 @@ try
         return 101;
     }
 
-    builder.Services
-        .AddSerilog()
-        .AddHttpContextAccessor()
-        .AddHealthChecks();
+    if (!StartupHelper.MoveRequiredFiles())
+    {
+        Log.Fatal("Failed to ensure required files, stopping application.");
+        return 102;
+    }
 
     // TODO: Dependency Injection resolve problem.
     // I want to use DI so services can be used in the DiscordCommands.
@@ -110,24 +117,3 @@ finally
     Log.CloseAndFlush();
 }
 
-static bool RecursivelyNotNullOrWhiteSpace(object instance)
-{
-    foreach (var property in instance.GetType().GetProperties())
-    {
-        var propertyValue = property.GetValue(instance);
-        switch (propertyValue)
-        {
-            case null:
-                return false;
-            case string text when !string.IsNullOrWhiteSpace(text):
-                continue;
-        }
-
-        // Probably should check for more but classes, but meh
-        if (property.PropertyType.IsClass &&
-            !property.PropertyType.Name.Equals("String", StringComparison.OrdinalIgnoreCase) &&
-            !RecursivelyNotNullOrWhiteSpace(propertyValue))
-            return false;
-    }
-    return true;
-}

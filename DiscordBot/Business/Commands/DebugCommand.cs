@@ -10,7 +10,16 @@ namespace DiscordBot.Business.Commands;
 
 public sealed class DebugCommand : ModuleBase<SocketCommandContext>
 {
-    internal bool Valid => new DatabaseContext().DiscordUsers.Any(a => Context.Message.Author.Id == a.Id);
+    internal async Task<bool> IfInvalidCancelAsync()
+    {
+        var result = new DatabaseContext().DiscordUsers.Any(a => Context.Message.Author.Id == a.Id);
+        if (result)
+            return true;
+
+        Log.Information("A non-privileged user {user} tried to use debug '{text}'.", Context.Message.Author.Id, Context.Message.Content);
+        await Context.Message.ReplyAsync("You are not a privileged user.");
+        return false;
+    }
 
     [Command("stop")]
     public static async Task StopAsync()
@@ -29,65 +38,68 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
         }
     }
 
-    [Command("debug")]
-    public async Task ExecuteAsync([Remainder] string text)
+    [Command("debug ping")]
+    public async Task PingAsync()
     {
-        try
+        if (!await IfInvalidCancelAsync())
+            return;
+
+        await Context.Message.ReplyAsync("pong");
+    }
+
+    [Command("debug update")]
+    public async Task UpdateYouTubeDownloaderAsync()
+    {
+        if (!await IfInvalidCancelAsync())
+            return;
+
+        var result = await DownloadHelper.UpdateYtDlpAsync() ? "succeeded" : "failed";
+        await Context.Message.ReplyAsync($"Update {result}");
+    }
+
+    [Command("debug dbReset")]
+    public async Task ExecuteDbResetAsync()
+    {
+        if (!await IfInvalidCancelAsync())
+            return;
+
+        await using var databaseContext = new DatabaseContext();
+        await databaseContext.Database.EnsureDeletedAsync();
+        await databaseContext.Database.EnsureCreatedAsync();
+        await Context.Message.ReplyAsync("Recreated database.");
+    }
+
+    [Command("debug addPrivilegedUser")]
+    public async Task AddPrivilegedUserAsync()
+    {
+        if (!await IfInvalidCancelAsync())
+            return;
+
+        await using var databaseContext = new DatabaseContext();
+        var mentionedUser = Context.Message.MentionedUsers.FirstOrDefault();
+        if (mentionedUser == null)
         {
-            var message = Context.Message;
-            if (!Valid)
-            {
-                Log.Information("A non-privileged user {user} tried to use debug '{text}'.", message.Author.Id, text);
-                await Context.Message.ReplyAsync("You are not a privileged user.");
-                return;
-            }
-
-            Log.Information("Executing debug command '{text}'.", text);
-            await using var databaseContext = new DatabaseContext();
-            switch (text.ToLower())
-            {
-                case "ping":
-                    await message.ReplyAsync("pong");
-                    break;
-
-                case "update":
-                    var result = await DownloadHelper.UpdateYtDlpAsync() ? "succeeded" : "failed";
-                    await message.ReplyAsync($"Update {result}");
-                    break;
-
-                case "dbReset":
-                    await databaseContext.Database.EnsureDeletedAsync();
-                    await databaseContext.Database.EnsureCreatedAsync();
-                    await message.ReplyAsync("Recreated database.");
-                    break;
-
-                case "addPrivilegedUser":
-                    var mentionedUser = message.MentionedUsers.FirstOrDefault();
-                    if (mentionedUser == null)
-                    {
-                        var author = DiscordUser.FromSocketUser(message.Author);
-                        Log.Verbose("'{author}' tried to add a user.", author);
-                        await Context.Message.ReplyAsync($"You need to mention a user, to add him.");
-                        return;
-                    }
-
-                    var dbUser = DiscordUser.FromSocketUser(mentionedUser);
-                    databaseContext.DiscordUsers.Add(dbUser);
-                    Log.Information("User '{user}' has been added.", mentionedUser);
-                    await Context.Message.ReplyAsync($"Saved '{databaseContext.SaveChanges()}' changes.");
-                    break;
-
-                case "clips":
-                    var audioClips = await databaseContext.AudioClips.AsNoTracking().ToArrayAsync();
-                    var clipText = string.Join<AudioClip>(Environment.NewLine, audioClips);
-                    await Context.Message.ReplyAsync(clipText);
-                    break;
-            }
+            var author = DiscordUser.FromSocketUser(Context.Message.Author);
+            Log.Verbose("'{author}' tried to add a user.", author);
+            await Context.Message.ReplyAsync($"You need to mention a user, to add him.");
+            return;
         }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Unexpected error debug.");
-            await Context.Message.ReplyAsync($"Digga: {ex.Message}");
-        }
+
+        var dbUser = DiscordUser.FromSocketUser(mentionedUser);
+        databaseContext.DiscordUsers.Add(dbUser);
+        Log.Information("User '{user}' has been added.", mentionedUser);
+        await Context.Message.ReplyAsync($"Saved '{await databaseContext.SaveChangesAsync()}' changes.");
+    }
+
+    [Command("debug clips")]
+    public async Task ClipsAsync()
+    {
+        if (!await IfInvalidCancelAsync())
+            return;
+
+        await using var databaseContext = new DatabaseContext();
+        var audioClips = await databaseContext.AudioClips.AsNoTracking().ToArrayAsync();
+        var clipText = string.Join<AudioClip>(Environment.NewLine, audioClips);
+        await Context.Message.ReplyAsync(clipText);
     }
 }

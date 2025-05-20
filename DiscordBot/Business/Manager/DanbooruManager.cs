@@ -4,9 +4,9 @@ using RestSharp;
 using Serilog;
 using System.Text.Json;
 
-namespace DiscordBot.Business.Services;
+namespace DiscordBot.Business.Manager;
 
-public sealed class DanbooruService(Danbooru danbooru)
+public sealed class DanbooruManager(Danbooru danbooru)
 {
     private const string DomainAddress = "https://danbooru.donmai.us";
     private RestRequest GetLoginRequest(string resource)
