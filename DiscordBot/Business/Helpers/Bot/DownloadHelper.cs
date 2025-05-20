@@ -52,11 +52,11 @@ internal static class DownloadHelper
         }
 
         var mediaDirectory = FileManager.GetMediaDirectory();
-        if (!mediaDirectory.Exists)
-            mediaDirectory.Create();
+        if (!Directory.Exists(mediaDirectory))
+            Directory.CreateDirectory(mediaDirectory);
 
         var fileName = string.Join(string.Empty, fileNamePrefix, '-', Guid.NewGuid());
-        var filePath = Path.Combine(mediaDirectory.Name, fileName);
+        var filePath = Path.Combine(mediaDirectory, fileName);
         List<string> arguments = [url, "-o", filePath];
         try
         {
@@ -85,8 +85,8 @@ internal static class DownloadHelper
                 return null;
             }
 
-            var fullFileName = mediaDirectory.GetFiles($"{fileName}*").FirstOrDefault()?.FullName;
-            return value.info != null && !string.IsNullOrWhiteSpace(fullFileName) ? fullFileName : null;
+            var fullFileName = Directory.GetFiles(mediaDirectory, $"{fileName}*").FirstOrDefault();
+            return value.info != null && string.IsNullOrWhiteSpace(fullFileName) ? null : fullFileName;
         }
         catch (Exception ex)
         {

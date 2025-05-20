@@ -1,11 +1,12 @@
-﻿@using DiscordBot.Data
+﻿@rendermode InteractiveServer
+@attribute [Authorize]
+@inject DatabaseContext DatabaseContext
+@using DiscordBot.Data
+@using DiscordBot.Models.Entities
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
-@page "/Clip/Manage"
-@inject DatabaseContext DatabaseContext
-@attribute [Authorize]
 
-<h1>Clip-Manager</h1>
+<h3>Clip-Manager</h3>
 
 <table class="table">
     <thead>
@@ -21,13 +22,14 @@
             <tr>
                 <td>@audioClip.Id</td>
                 <td>@audioClip.CallCode</td>
-                <td>@audioClip.FileName</td>
+                <td>@audioClip.FilePath</td>
             </tr>
         }
     </tbody>
 </table>
 
-<br/>
-<br/>
-
-<Upload></Upload>
+@code
+{
+    [Parameter]
+    public List<AudioClip> AudioClips { get; set; } = [];
+}

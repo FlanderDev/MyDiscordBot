@@ -5,9 +5,9 @@ namespace DiscordBot.Business.Helpers.Bot;
 
 internal static class FileManager
 {
-    internal static DirectoryInfo GetDatabaseDirectory() => new("Database");
-    internal static DirectoryInfo GetFileUploadDirectory() => new("wwwroot/uploads");
-    internal static DirectoryInfo GetMediaDirectory() => new("MediaFiles");
+    internal static string GetDatabaseDirectory() => Path.GetRelativePath(Environment.CurrentDirectory, new DirectoryInfo("Database").FullName);
+    internal static string GetFileUploadDirectory() => Path.GetRelativePath(Environment.CurrentDirectory, new DirectoryInfo("wwwroot/uploads").FullName);
+    internal static string GetMediaDirectory() => Path.GetRelativePath(Environment.CurrentDirectory, new DirectoryInfo("MediaFiles").FullName);
 
     internal static async Task<string?> GetLocalResourceOrDownloadAsync(string fileName, string url)
     {

@@ -1,15 +1,16 @@
-﻿@page "/Clip/Upload"
+﻿@rendermode InteractiveServer
 @attribute [Authorize]
-@rendermode InteractiveServer
 @inject IOptions<Configuration> Options
-
+@inject IHttpContextAccessor ContextAccessor
+@using System.Security.Claims
 @using DiscordBot.Business.Helpers.Bot
+@using DiscordBot.Models.Entities
 @using DiscordBot.Models.Internal.Configs
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Options
 @using Serilog
 
-
+<h3>Upload</h3>
 <InputFile OnChange="HandleSelectedFiles" AdditionalAttributes="InputFileAttribute" />
 <table class="table">
     <thead>
@@ -18,6 +19,7 @@
             <th>File</th>
             <th>Progress</th>
             <th>Status</th>
+            <th>Edit</th>
         </tr>
     </thead>
     <tbody>
@@ -30,13 +32,14 @@
                 <td>
                     <div class="progress" style="height: 20px;">
                         <div class="progress-bar" role="progressbar"
-                        style="width: @fileStatus.Progress%" aria-valuenow="@fileStatus.Progress"
-                        aria-valuemin="0" aria-valuemax="100">
+                             style="width: @(fileStatus.Progress)%" aria-valuenow="@fileStatus.Progress"
+                             aria-valuemin="0" aria-valuemax="100">
                             @($"{fileStatus.Progress}%")
                         </div>
                     </div>
                 </td>
                 <td>@fileStatus.Status</td>
+                <td>Edit</td>
             </tr>
         }
     </tbody>
@@ -44,6 +47,8 @@
 <p>@Message</p>
 
 @code {
+    [Parameter]
+    public Action<AudioClip>? AddAudioClip { get; set; }
     private string Message { get; set; } = string.Empty;
     private readonly List<FileUploadStatus> _fileUploadStatuses = [];
     private static IReadOnlyCollection<string> _validExtensions = [".mp3", ".ogg", ".mp4"];
@@ -55,9 +60,23 @@
 
     private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
     {
+        var discordClaim = ContextAccessor.HttpContext?.User.Claims.FirstOrDefault(f => f.Type.Equals(ClaimTypes.Sid));
         Message = "Processing...";
-
         _fileUploadStatuses.Clear();
+        StateHasChanged();
+
+        if (discordClaim == null)
+        {
+            Message = "Could not validate your credentials, please reload.";
+            return;
+        }
+
+        if (!ulong.TryParse(discordClaim.Value, out var discordId))
+        {
+            Message = "Login data invalid.";
+            return;
+        }
+
         foreach (var file in e.GetMultipleFiles(int.MaxValue))
         {
             var status = new FileUploadStatus
@@ -72,15 +91,13 @@
                 _fileUploadStatuses.Add(status);
                 StateHasChanged();
 
-                var buffer = new byte[81920]; // 80KB chunks
+                var buffer = new byte[81920]; // 80 KB chunks
                 long totalRead = 0;
                 var total = file.Size;
 
-                var uploadDirectory = FileManager.GetFileUploadDirectory();
-                var uploadPath = Path.Combine(uploadDirectory.FullName, file.Name);
-
+                var uploadPath = Path.Combine(FileManager.GetFileUploadDirectory(), file.Name);
                 await using var fileStream = File.Create(uploadPath);
-                var fileSize = (long)1024 * 1024 * Options.Value.Blazor.FileSizeLimitMb;
+                var fileSize = 1048576L * Options.Value.Blazor.FileSizeLimitMb;
                 await using var stream = file.OpenReadStream(maxAllowedSize: fileSize);
 
                 int bytesRead;
@@ -93,12 +110,22 @@
                     StateHasChanged(); // updates the progress bar
                 }
 
-                status.Status = "Uploaded ✅";
+                var audioClip = new AudioClip
+                    {
+                        CallCode = Path.GetFileNameWithoutExtension(file.Name),
+                        DiscordUserId = discordId,
+                        FilePath = uploadPath
+                    };
+                var result = await ClipHelper.AddNewClipAsync(audioClip);
+                status.FilePath = uploadPath;
+                status.Status = result ? "Uploaded ✅" : "Failed ❌";
+
+                AddAudioClip?.Invoke(audioClip);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Failed to upload file.");
-                status.Status = $"Failed ❌ ({ex.Message})";
+                Log.Error(ex, "Error uploading file.");
+                status.Status = $"Error ❌ ({ex.Message})";
             }
 
             StateHasChanged();
@@ -107,8 +134,9 @@
         Message = "Done";
     }
 
-    internal sealed class FileUploadStatus
+    private sealed class FileUploadStatus
     {
+        public string FilePath { get; set; } = string.Empty;
         public required IBrowserFile File { get; init; }
         public int Progress { get; set; }
         public string Status { get; set; } = "Waiting...";

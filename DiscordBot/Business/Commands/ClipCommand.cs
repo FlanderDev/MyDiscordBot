@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers.Bot;
-using DiscordBot.Data;
 using DiscordBot.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -45,19 +44,10 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 return;
             }
 
-            var context = new DatabaseContext();
-            var existingCallCode = await context.AudioClips.FirstOrDefaultAsync(a => a.CallCode.Equals(callCode));
-            if (existingCallCode != null)
+            if (!await ClipHelper.DoesCallCodeExistAsync(callCode))
             {
-                if (File.Exists(existingCallCode.FileName))
-                {
-                    await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
-                    return;
-                }
-
-                await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists, but the file could not be found. Freeing call code.");
-                context.AudioClips.Remove(existingCallCode);
-                await context.SaveChangesAsync();
+                await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
+                return;
             }
 
             var startText = start?.ToString("g") ?? "start";
@@ -67,20 +57,21 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             var filePath = await DownloadHelper.DownloadYouTubeMediaAsync(false, data[0], Context.User.GlobalName, start, end);
             if (filePath == null)
             {
-                await Context.Message.ReplyAsync("Could not create clip.");
+                await Context.Message.ReplyAsync("Could not download the media required for the clip.");
                 return;
             }
 
             var audioClip = new AudioClip
             {
-                FileName = filePath,
+                FilePath = filePath,
                 CallCode = callCode,
                 DiscordUserId = Context.User.Id,
             };
-            context.AudioClips.Add(audioClip);
-            await context.SaveChangesAsync();
 
-            await Context.Message.ReplyAsync($"Successfully added new clip, with call code '{callCode}'.");
+            if (await ClipHelper.AddNewClipAsync(audioClip))
+                await Context.Message.ReplyAsync($"Successfully added new clip, with call code '{callCode}'.");
+            else
+                await Context.Message.ReplyAsync($"Could not add new clip, with call code; '{callCode}'.");
         }
         catch (Exception ex)
         {
@@ -90,7 +81,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
     }
 
     [Command("!", RunMode = RunMode.Async)]
-    public async Task PlayClipAsync([Remainder] string text)
+    public async Task PlayClipAsync([Remainder] string callCode)
     {
         if (Context.Message.Author is not IGuildUser guildUser || guildUser.VoiceChannel == null)
         {
@@ -100,35 +91,22 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
 
         try
         {
-            var context = new DatabaseContext();
-            var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault(f => f.CallCode.Equals(text));
+            var audioClip = await ClipHelper.GetValidateCallCodeAsync(callCode);
             if (audioClip == null)
             {
-                Log.Warning("Could not find a clip associated with {callCode} '{callCodeInput}'.", nameof(AudioClip.CallCode), text);
-                await Context.Message.ReplyAsync($"Could not find a clip associated with {nameof(AudioClip.CallCode)} '{text}'.");
-                return;
-            }
-
-            var data = new DirectoryInfo(Environment.CurrentDirectory);
-            var files = data.GetFiles();
-            if (!File.Exists(audioClip.FileName))
-            {
-                var fullPath = Path.Combine(Environment.CurrentDirectory, audioClip.FileName);
-                Log.Warning("The file '{fullPath}'w does not exist.", audioClip.FileName);
-                await Context.Message.ReplyAsync($"No associated audio could be found for the valid callCode '{audioClip.CallCode}', freeing callCode.");
-                context.AudioClips.Remove(audioClip);
-                await context.SaveChangesAsync();
+                Log.Warning("Could not find a clip associated with {callCode} '{callCodeInput}'.", nameof(AudioClip.CallCode), callCode);
+                await Context.Message.ReplyAsync($"Could not find a clip associated with {nameof(AudioClip.CallCode)} '{callCode}'.");
                 return;
             }
 
             var audioClient = await guildUser.VoiceChannel.ConnectAsync();
             using var audioHelper = new DiscordAudioHelper(audioClient);
-            await audioHelper.PlayAudioAsync(audioClip.FileName);
+            await audioHelper.PlayAudioAsync(audioClip.FilePath);
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error trying to play audio.");
-            await Context.Message.ReplyAsync($"No '{text}', only errors.");
+            await Context.Message.ReplyAsync($"No '{callCode}', only errors.");
         }
         finally
         {

@@ -1,15 +1,17 @@
 ﻿using Discord.Commands;
 using DiscordBot.Business.Services;
+using DiscordBot.Models.Internal.Configs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace DiscordBot.Business.Commands;
 
-public sealed class TextCommand : ModuleBase<SocketCommandContext>
+public sealed class TextCommand([FromServices] IOptions<Configuration> options) : ModuleBase<SocketCommandContext>
 {
     [Command("holobots")]
     public async Task HoloBotsAsync()
     {
-        DanbooruService danbooruService = null;
         try
         {
             Log.Debug("Executing HoloBots.");
@@ -18,7 +20,7 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
 
             if (botId == 1302467929761120347) // Kumo
             {
-                var (imageUrl, imageIndex) = await danbooruService.GetRandomImageByTagAsync("+shiraori", "+solo");
+                var (imageUrl, imageIndex) = await new DanbooruService(options).GetRandomImageByTagAsync("+shiraori", "+solo");
                 if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("YOU WORM! You won't receive ANY images from me!");
                 else
@@ -26,7 +28,7 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
             }
             else if (botId == 995955672934006784) //Ina
             {
-                var (imageUrl, imageIndex) = await danbooruService.GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
+                var (imageUrl, imageIndex) = await new DanbooruService(options).GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
                 if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("Sowy Tako <3, I, couldn't fetch any images, maybe next time^^");
                 else
@@ -45,7 +47,6 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
     [Command("InaPun")]
     public async Task InaPanAsync()
     {
-        DanbooruService danbooruService = null;
         try
         {
             Log.Debug("Executing InaPun.");
@@ -53,7 +54,7 @@ public sealed class TextCommand : ModuleBase<SocketCommandContext>
             if (Context.Client.CurrentUser.Id != 995955672934006784) //Ina
                 return;
 
-            var (imageUrl, imageIndex) = await danbooruService.GetRandomImageByTagAsync(_punCounter, "+ninomae_ina'nis", "+pun");
+            var (imageUrl, imageIndex) = await new DanbooruService(options).GetRandomImageByTagAsync(_punCounter, "+ninomae_ina'nis", "+pun");
             if (imageUrl == null)
             {
                 _punCounter = ++imageIndex;

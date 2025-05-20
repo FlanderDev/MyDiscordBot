@@ -13,7 +13,7 @@ public sealed class DatabaseContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var databaseDirectory = FileManager.GetDatabaseDirectory();
-        var relativePath = Path.Combine(databaseDirectory.Name, nameof(DiscordBot));
+        var relativePath = Path.Combine(databaseDirectory, nameof(DiscordBot));
         optionsBuilder.UseSqlite($"Data source={relativePath}.db");
     }
 
@@ -22,8 +22,8 @@ public sealed class DatabaseContext : DbContext
         try
         {
             var databaseDirectory = FileManager.GetDatabaseDirectory();
-            if (!databaseDirectory.Exists)
-                databaseDirectory.Create();
+            if (!Directory.Exists(databaseDirectory))
+                Directory.CreateDirectory(databaseDirectory);
 
             using var context = new DatabaseContext();
             if (!context.Database.EnsureCreated())
