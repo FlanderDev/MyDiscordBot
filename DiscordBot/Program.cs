@@ -22,7 +22,7 @@ try
 
 
     var builder = WebApplication.CreateBuilder(args);
-    builder.WebHost.UseUrls("http://*:42069", "https://*:42069");
+    builder.WebHost.UseUrls("http://*:42069");
     builder.Host.UseSerilog(Log.Logger);
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(Log.Logger);
