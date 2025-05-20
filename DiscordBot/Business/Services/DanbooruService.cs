@@ -1,19 +1,18 @@
 ﻿using DiscordBot.Models.Danbooru;
 using DiscordBot.Models.Internal.Configs;
-using Microsoft.Extensions.Options;
 using RestSharp;
 using Serilog;
 using System.Text.Json;
 
 namespace DiscordBot.Business.Services;
 
-public sealed class DanbooruService(IOptions<Configuration> options)
+public sealed class DanbooruService(Danbooru danbooru)
 {
     private const string DomainAddress = "https://danbooru.donmai.us";
     private RestRequest GetLoginRequest(string resource)
                     => new RestRequest(resource)
-                        .AddQueryParameter("login", options.Value.Danbooru.Username)
-                        .AddQueryParameter("api_key", options.Value.Danbooru.Token);
+                        .AddQueryParameter("login", danbooru.Username)
+                        .AddQueryParameter("api_key", danbooru.Token);
 
 
     internal Task<(string? ImageUrl, int ImageIndex)> GetRandomImageByTagAsync(params string[] tags) => GetRandomImageByTagAsync(-1, tags);

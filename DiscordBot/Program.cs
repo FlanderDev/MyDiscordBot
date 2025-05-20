@@ -56,7 +56,6 @@ try
     // TL;DR: Problem for future me.
     builder.Services
         .AddDbContext<DatabaseContext>()
-        //.AddScoped<DanbooruService>()
         .AddHostedService<DiscordNet>();
 
     builder.Services

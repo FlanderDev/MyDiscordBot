@@ -20,7 +20,7 @@ public sealed class TextCommand([FromServices] IOptions<Configuration> options) 
 
             if (botId == 1302467929761120347) // Kumo
             {
-                var (imageUrl, imageIndex) = await new DanbooruService(options).GetRandomImageByTagAsync("+shiraori", "+solo");
+                var (imageUrl, imageIndex) = await new DanbooruService(options.Value.Danbooru).GetRandomImageByTagAsync("+shiraori", "+solo");
                 if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("YOU WORM! You won't receive ANY images from me!");
                 else
@@ -28,7 +28,7 @@ public sealed class TextCommand([FromServices] IOptions<Configuration> options) 
             }
             else if (botId == 995955672934006784) //Ina
             {
-                var (imageUrl, imageIndex) = await new DanbooruService(options).GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
+                var (imageUrl, imageIndex) = await new DanbooruService(options.Value.Danbooru).GetRandomImageByTagAsync("+ninomae_ina'nis", "+solo");
                 if (imageUrl == null)
                     await Context.Channel.SendMessageAsync("Sowy Tako <3, I, couldn't fetch any images, maybe next time^^");
                 else
@@ -54,7 +54,7 @@ public sealed class TextCommand([FromServices] IOptions<Configuration> options) 
             if (Context.Client.CurrentUser.Id != 995955672934006784) //Ina
                 return;
 
-            var (imageUrl, imageIndex) = await new DanbooruService(options).GetRandomImageByTagAsync(_punCounter, "+ninomae_ina'nis", "+pun");
+            var (imageUrl, imageIndex) = await new DanbooruService(options.Value.Danbooru).GetRandomImageByTagAsync(_punCounter, "+ninomae_ina'nis", "+pun");
             if (imageUrl == null)
             {
                 _punCounter = ++imageIndex;
