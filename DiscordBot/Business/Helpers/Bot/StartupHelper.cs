@@ -64,7 +64,8 @@ internal static class StartupHelper
                 return true;
             }
 
-            if (File.Exists(opusDll))
+            var shouldFilePath = Path.Combine(FileHelper.BaseDirectory, opusDll);
+            if (File.Exists(shouldFilePath))
             {
                 Log.Verbose("{fileName} already exists.", opusDll);
                 return true;
@@ -81,11 +82,9 @@ internal static class StartupHelper
                 return false;
             }
 
-            var fileName = Path.GetFileName(opusFilePath);
-            var newFilePath = Path.Combine(FileHelper.BaseDirectory, fileName);
-            Log.Verbose("Moving file from '{origin}' to '{target}'.", fileName, newFilePath);
+            Log.Verbose("Moving file from '{origin}' to '{target}'.", opusFilePath, shouldFilePath);
 
-            File.Move(opusFilePath, newFilePath);
+            File.Move(opusFilePath, shouldFilePath);
             return true;
         }
         catch (Exception ex)

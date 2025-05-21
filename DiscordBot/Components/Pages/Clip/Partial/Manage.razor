@@ -1,10 +1,17 @@
 ﻿@rendermode InteractiveServer
 @attribute [Authorize]
+@inject IHttpContextAccessor HttpContextAccessor
 @inject DatabaseContext DatabaseContext
+@inject DiscordNet DiscordNet
+@using Discord
+@using Discord.WebSocket
+@using DiscordBot.Business.Bots
+@using DiscordBot.Business.Helpers.Bot
 @using DiscordBot.Data
 @using DiscordBot.Models.Entities
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Serilog
 
 <h3>Clip-Manager</h3>
 
@@ -14,6 +21,7 @@
             <th>Id</th>
             <th>CallCode</th>
             <th>FileName</th>
+            <th>Play</th>
         </tr>
     </thead>
     <tbody>
@@ -23,6 +31,7 @@
                 <td>@audioClip.Id</td>
                 <td>@audioClip.CallCode</td>
                 <td>@audioClip.FilePath</td>
+                <td><button @onclick="() => PlayClipAsync(audioClip)">Play</button></td>
             </tr>
         }
     </tbody>
@@ -32,4 +41,49 @@
 {
     [Parameter]
     public List<AudioClip> AudioClips { get; set; } = [];
+
+    private async Task PlayClipAsync(AudioClip audioClip)
+    {
+        try
+        {
+            var id = HttpContextAccessor.GetUserIdFromHttpContextAccessor();
+            if (id == null)
+            {
+                Log.Warning("Invalid sid from httpContext.");
+                return;
+            }
+
+            if (await DiscordNet.DiscordSocketClient.GetUserAsync(id.Value) is not SocketUser socketUser)
+            {
+                Log.Warning("Could not user from id.");
+                return;
+            }
+
+            var socketVoiceChannel = socketUser.MutualGuilds
+                .Select(mutualGuild => mutualGuild.GetUser(id.Value).VoiceChannel)
+                .FirstOrDefault();
+            if (socketVoiceChannel == null)
+            {
+                Log.Verbose("User dosen't seem to be in any VC of a guild the bot is also in.");
+                return;
+            }
+
+            var voiceChannel = socketUser.MutualGuilds
+                .Select(s => s.GetUser(id.Value).VoiceChannel)
+                .FirstOrDefault(f => f != null);
+            if (voiceChannel == null)
+            {
+                Log.Verbose("User dosen't seem to be in any VC of a guild the bot is also in.");
+                return;
+            }
+
+            var audioClient = await voiceChannel.ConnectAsync();
+            using var audioHelper = new DiscordAudioHelper(audioClient);
+            await audioHelper.PlayAudioAsync(audioClip.FilePath);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error playing audioClip initiated by blazor.");
+        }
+    }
 }

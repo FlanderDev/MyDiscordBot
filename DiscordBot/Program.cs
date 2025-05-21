@@ -23,7 +23,6 @@ try
 
 
     var builder = WebApplication.CreateBuilder(args);
-    builder.WebHost.UseUrls("http://*:42069");
     builder.Host.UseSerilog(Log.Logger);
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(Log.Logger);
@@ -63,7 +62,7 @@ try
     // TL;DR: Problem for future me.
     builder.Services
         .AddDbContext<DatabaseContext>()
-        .AddHostedService<DiscordNet>();
+        .AddSingleton<DiscordNet>().AddHostedService(o => o.GetRequiredService<DiscordNet>()); // Different problem: This didn't register the type for DI.
 
     builder.Services
         .AddRazorComponents()

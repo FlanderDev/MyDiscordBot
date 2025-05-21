@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using RestSharp;
+﻿using RestSharp;
 using Serilog;
 
 namespace DiscordBot.Business.Helpers.Bot;
@@ -7,9 +6,9 @@ namespace DiscordBot.Business.Helpers.Bot;
 internal static class FileHelper
 {
     internal static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
-    internal static string GetDatabaseDirectory() => Path.GetRelativePath(BaseDirectory, new DirectoryInfo("Database").FullName);
-    internal static string GetFileUploadDirectory() => Path.GetRelativePath(BaseDirectory, new DirectoryInfo("wwwroot/Uploads").FullName);
-    internal static string GetMediaDirectory() => Path.GetRelativePath(BaseDirectory, new DirectoryInfo("MediaFiles").FullName);
+    internal static string GetDatabaseDirectory() => Path.Combine(BaseDirectory, "Database");
+    internal static string GetFileUploadDirectory() => Path.Combine(BaseDirectory, "Uploads");
+    internal static string GetMediaDirectory() => Path.Combine(BaseDirectory, "MediaFiles");
 
     internal static async Task<string?> GetLocalResourceOrDownloadAsync(string fileName, string url)
     {
