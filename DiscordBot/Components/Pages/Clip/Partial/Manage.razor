@@ -1,4 +1,6 @@
-﻿@rendermode InteractiveServer
+﻿@page "/Clip/Manage"
+@attribute [Authorize]
+@rendermode InteractiveServer
 @inject IHttpContextAccessor HttpContextAccessor
 @inject DatabaseContext DatabaseContext
 @inject DiscordNet DiscordNet
