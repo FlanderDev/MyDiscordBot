@@ -35,15 +35,8 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (string.IsNullOrWhiteSpace(State))
-            return;
-
-        if (State.Equals("Login", StringComparison.OrdinalIgnoreCase))
-            await LoginService.LoginUserAsync();
-        else if (State.Equals("Logout", StringComparison.OrdinalIgnoreCase))
-            await LoginService.LogoutUserAsync();
-
-        Log.Warning("Invalid state '{state}'.", State);
-        NavigationManager.NavigateTo(RouteHelper.Home);
+        await LoginService.LogoutUserAsync();
+        if (await LoginService.LoginUserAsync())
+            NavigationManager.NavigateTo(RouteHelper.Home);
     }
 }
