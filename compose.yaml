@@ -2,7 +2,6 @@ services:
   discordbot:
     ports:
       - 8080:42069
-      - 80:42070
     build:
       context: . # Use the current directory as the build context
       dockerfile: Dockerfile
