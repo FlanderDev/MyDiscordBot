@@ -1,12 +1,14 @@
-﻿@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
+﻿@using DiscordBot.Business.Helpers.Blazor
+@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
 @inject IHttpContextAccessor HttpContextAccessor
 
-<div class="">
+<h2><a href="@RouteHelper.Home">Home</a></h2>
+<div class="mx-4 d-flex flex-column min-vh-100">
+    <div class="container text-center"></div>
     @Body
-
     @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
     {
-        <footer>
+        <footer class="mt-auto">
             <i>Welcome, @HttpContextAccessor.HttpContext?.User.Identity.Name</i>
         </footer>
     }

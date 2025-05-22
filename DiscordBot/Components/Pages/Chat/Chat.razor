@@ -11,8 +11,8 @@
 <h3>Select an option</h3>
 
 <h3>Chat</h3>
-<div>
-    <div>
+<div class="row align-items-start">
+    <div class="col-2">
         @foreach (var guild in Guilds)
         {
             <div>
@@ -22,7 +22,7 @@
         }
     </div>
 
-    <div>
+    <div class="col-2">
         @foreach (var channel in TextChannels)
         {
             <div>
@@ -30,18 +30,18 @@
             </div>
         }
     </div>
+    
+    <div class="col">
+        <InputTextArea @bind-Value="Message"></InputTextArea>
+        <button @onclick="SendMessageAsync">Send</button>
+    </div>
 
-    <div>
+    <div class="col">
         @foreach (var message in Messages)
         {
             <b>@message.Author.GlobalName</b>
             <p>@message.Content</p>
         }
-    </div>
-
-    <div>
-        <InputTextArea @bind-Value="Message"></InputTextArea>
-        <button @onclick="SendMessageAsync">Send</button>
     </div>
 </div>
 
