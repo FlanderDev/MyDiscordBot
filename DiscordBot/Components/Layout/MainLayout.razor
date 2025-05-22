@@ -18,6 +18,7 @@
         {
             <b>Bruh ain't logged in, couldn't be me.</b>
         }
+        <p>@(@HttpContextAccessor.HttpContext?.User.Identity?.Name ?? "-")</p>
     </footer>
 </div>
 
