@@ -9,15 +9,15 @@ internal static class DownloadHelper
     {
         try
         {
-            if (forceUpdate && File.Exists("yt-dlp"))
-                File.Delete("yt-dlp");
+            var fileName = OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe";
+            if (forceUpdate && File.Exists(fileName))
+                File.Delete(fileName);
 
-            if (File.Exists("yt-dlp"))
+            if (File.Exists(fileName))
                 return true;
 
-            Log.Verbose("Downloading yt-dlp...");
-            var fileName = OperatingSystem.IsLinux() ? "yt-dlp_linux" : "yt-dlp.exe";
-            var result = await GitHubHelper.DownloadGithubReleaseAsync("yt-dlp", "yt-dlp", fileName, "yt-dlp");
+            Log.Verbose("Downloading {fileName}...", fileName);
+            var result = await GitHubHelper.DownloadGithubReleaseAsync("yt-dlp", "yt-dlp", fileName, fileName);
             if (result && OperatingSystem.IsLinux())
             {
                 if (await ProcessHelper.StartProcessAsync("chmod", "+x yt-dlp") is not { } value)
@@ -57,7 +57,8 @@ internal static class DownloadHelper
 
         var fileName = string.Join(string.Empty, fileNamePrefix, '-', Guid.NewGuid());
         var filePath = Path.Combine(mediaDirectory, fileName);
-        List<string> arguments = [url, "-o", filePath];
+        var cleanUrl = url.Split('&').FirstOrDefault() ?? url;
+        List<string> arguments = [cleanUrl, "-o", filePath];
         try
         {
             if (!requiresVideo)

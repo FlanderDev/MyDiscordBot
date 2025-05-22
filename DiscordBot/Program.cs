@@ -7,10 +7,13 @@ using Serilog;
 using Serilog.Events;
 using System.Reflection;
 using DiscordBot.Business.Helpers.Bot;
+using DiscordBot.Business.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 try
 {
+    Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
     Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Verbose()
     .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
@@ -42,7 +45,9 @@ try
         .AddHttpContextAccessor()
         .AddHealthChecks();
 
-    if (!DatabaseContext.CreateDefault())
+    builder.Services.AddScoped<LoginService>();
+
+    if (! await DatabaseContext.CreateDefaultAsync())
     {
         Log.Warning("Failed to create default database, stopping application.");
         return 101;
@@ -62,7 +67,9 @@ try
     // TL;DR: Problem for future me.
     builder.Services
         .AddDbContext<DatabaseContext>()
-        .AddSingleton<DiscordNet>().AddHostedService(o => o.GetRequiredService<DiscordNet>()); // Different problem: This didn't register the type for DI.
+        // Different problem: 'AddHostedService' doesn't register it for DI, so I'm adding a singleton and requesting it.
+        .AddSingleton<DiscordNet>()
+        .AddHostedService(o => o.GetRequiredService<DiscordNet>()); 
 
     builder.Services
         .AddRazorComponents()
@@ -70,19 +77,23 @@ try
 
     builder.Services
         .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-        .AddCookie(o =>
+        .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, o =>
         {
             o.LoginPath = "/User/Login";
             o.LogoutPath = "/User/Logout";
+            o.AccessDeniedPath = "/Home?ADP";
         });
 
-    builder.Services.AddControllers();
+    builder.Services
+        .AddAuthorization()
+        .AddControllers();
 
     var app = builder.Build();
     if (!app.Environment.IsDevelopment())
         app.UseExceptionHandler("/Error", createScopeForErrors: true);
 
     app.UseAuthentication();
+    app.UseAuthorization();
     app.UseAntiforgery();
 
     app.MapControllers();

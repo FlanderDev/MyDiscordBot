@@ -8,7 +8,7 @@ internal static class GitHubHelper
     internal static async Task<bool> DownloadGithubReleaseAsync(
         string gitHubName,
         string gitHubRepo,
-        string fileEnding,
+        string fileEndingMatch,
         string? saveName = null
     )
     {
@@ -17,7 +17,7 @@ internal static class GitHubHelper
             var restClient = new RestClient("https://api.github.com");
             var request = new RestRequest($"/repos/{gitHubName}/{gitHubRepo}/releases/latest");
             var response = await restClient.ExecuteAsync<Release>(request);
-            var fileToDownload = response.Data?.Assets.FirstOrDefault(f => f.Name.EndsWith(fileEnding));
+            var fileToDownload = response.Data?.Assets.FirstOrDefault(f => f.Name.EndsWith(fileEndingMatch));
             if (fileToDownload == null)
                 return false;
 

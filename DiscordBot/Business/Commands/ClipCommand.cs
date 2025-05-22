@@ -44,7 +44,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 return;
             }
 
-            if (!await ClipHelper.DoesCallCodeExistAsync(callCode))
+            if (await ClipHelper.DoesCallCodeExistAsync(callCode))
             {
                 await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
                 return;

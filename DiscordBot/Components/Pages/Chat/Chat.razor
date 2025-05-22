@@ -1,0 +1,70 @@
+﻿@page "/Chat"
+@inject DiscordNet DiscordNet
+@using Discord
+@using Discord.WebSocket
+@using DiscordBot.Business.Bots
+@using Microsoft.AspNetCore.Authorization
+@using Serilog
+
+<h3>Chat</h3>
+<InputSelect TValue="SocketGuild" ValueChanged="OnSelectedGuild">
+    @foreach (var socketGuild in DiscordNet.DiscordSocketClient.Guilds)
+    {
+        <option value="@socketGuild">
+            <img src="@socketGuild.IconUrl" alt="server icon" />
+            <b>@socketGuild.Name</b>
+        </option>
+    }
+</InputSelect>
+
+<InputSelect TValue="SocketTextChannel" ValueChanged="OnSelectedChannel">
+    @foreach (var channel in Channels.OfType<SocketTextChannel>())
+    {
+        <option value="@channel">@channel.Name</option>
+    }
+</InputSelect>
+
+@foreach (var message in Messages)
+{
+    <div>
+        <b>@message.Author.GlobalName</b>
+        <p>@message.CleanContent</p>
+    </div>
+}
+
+<InputTextArea @bind-Value="CurrentMessage" @onsubmit="SendCurrentMessageAsync"></InputTextArea>
+
+
+@code {
+    private IReadOnlyCollection<SocketGuildChannel> Channels { get; set; } = [];
+    private SocketTextChannel? SelectedChannel { get; set; }
+    private IReadOnlyCollection<IMessage> Messages { get; set; } = [];
+
+    private void OnSelectedGuild(SocketGuild socketGuild) => Channels = socketGuild.Channels;
+    private void OnSelectedChannel(SocketTextChannel socketTextChannel)
+    {
+        SelectedChannel = socketTextChannel;
+    }
+
+    private string CurrentMessage { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (SelectedChannel == null)
+        {
+            Log.Warning("Selected channel was null, when it should not.");
+            return;
+        }
+
+        var messages = await SelectedChannel.GetMessagesAsync(4).ToListAsync();
+        Messages = messages.SelectMany(s => s).ToList();
+    }
+
+    private async Task SendCurrentMessageAsync()
+    {
+        if (SelectedChannel == null || string.IsNullOrWhiteSpace(CurrentMessage))
+            return;
+
+        await SelectedChannel.SendMessageAsync(CurrentMessage);
+    }
+}

@@ -7,4 +7,5 @@ public sealed class Discord
     public string ClientSecret { get; set; } = string.Empty;
     public string RedirectUri { get; set; } = string.Empty;
     public string Scopes { get; set; } = string.Empty;
+    public ulong UserIdOfAdmin { get; set; }
 }

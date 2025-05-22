@@ -1,16 +1,13 @@
 ﻿@rendermode InteractiveServer
-@attribute [Authorize]
 @inject IOptions<Configuration> Options
 @inject IHttpContextAccessor ContextAccessor
-@using System.Security.Claims
 @using DiscordBot.Business.Helpers.Bot
 @using DiscordBot.Models.Entities
 @using DiscordBot.Models.Internal.Configs
-@using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Options
 @using Serilog
 
-<h3>Upload</h3>
+<h3>Upload-Manager</h3>
 <InputFile OnChange="HandleSelectedFiles" AdditionalAttributes="InputFileAttribute" />
 <table class="table">
     <thead>
@@ -32,8 +29,8 @@
                 <td>
                     <div class="progress" style="height: 20px;">
                         <div class="progress-bar" role="progressbar"
-                        style="width: @(fileStatus.Progress) %" aria-valuenow="@fileStatus.Progress"
-                        aria-valuemin="0" aria-valuemax="100">
+                             style="width: @(fileStatus.Progress) %" aria-valuenow="@fileStatus.Progress"
+                             aria-valuemin="0" aria-valuemax="100">
                             @($"{fileStatus.Progress}%")
                         </div>
                     </div>
@@ -119,9 +116,9 @@
                     {
                         CallCode = Path.GetFileNameWithoutExtension(browserFile.Name),
                         DiscordUserId = discordId.Value,
-                        FilePath = Path.GetRelativePath(FileHelper.BaseDirectory, filePath)
+                        FilePath = Path.GetRelativePath(Environment.CurrentDirectory, filePath)
                     };
-                    
+
                 var result = await ClipHelper.AddNewClipAsync(audioClip);
                 status.FilePath = filePath;
                 status.Status = result ? "Uploaded ✅" : "Failed ❌";

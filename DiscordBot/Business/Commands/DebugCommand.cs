@@ -3,16 +3,20 @@ using Discord.Commands;
 using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Data;
 using DiscordBot.Models.Entities;
+using DiscordBot.Models.Internal.Configs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace DiscordBot.Business.Commands;
 
-public sealed class DebugCommand : ModuleBase<SocketCommandContext>
+public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<SocketCommandContext>
 {
     internal async Task<bool> IfInvalidCancelAsync()
     {
-        var result = new DatabaseContext().DiscordUsers.Any(a => Context.Message.Author.Id == a.Id);
+        var currentUserId = Context.Message.Author.Id;
+        var adminId = options.Value.Discord.UserIdOfAdmin;
+        var result = (adminId != 0 && currentUserId == adminId) || new DatabaseContext().DiscordUsers.Any(a => a.Administrator && a.Id == currentUserId);
         if (result)
             return true;
 
@@ -38,15 +42,21 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
         }
     }
 
+    #region Unprivileged
     [Command("debug ping")]
-    public async Task PingAsync()
+    public async Task PingAsync() => await Context.Message.ReplyAsync("pong");
+
+    [Command("debug clips")]
+    public async Task ClipsAsync()
     {
-        if (!await IfInvalidCancelAsync())
-            return;
-
-        await Context.Message.ReplyAsync("pong");
+        await using var databaseContext = new DatabaseContext();
+        var audioClips = await databaseContext.AudioClips.AsNoTracking().ToArrayAsync();
+        var clipText = string.Join<AudioClip>(Environment.NewLine, audioClips);
+        await Context.Message.ReplyAsync(clipText);
     }
+    #endregion
 
+    #region Privileged
     [Command("debug update")]
     public async Task UpdateYouTubeDownloaderAsync()
     {
@@ -90,16 +100,5 @@ public sealed class DebugCommand : ModuleBase<SocketCommandContext>
         Log.Information("User '{user}' has been added.", mentionedUser);
         await Context.Message.ReplyAsync($"Saved '{await databaseContext.SaveChangesAsync()}' changes.");
     }
-
-    [Command("debug clips")]
-    public async Task ClipsAsync()
-    {
-        if (!await IfInvalidCancelAsync())
-            return;
-
-        await using var databaseContext = new DatabaseContext();
-        var audioClips = await databaseContext.AudioClips.AsNoTracking().ToArrayAsync();
-        var clipText = string.Join<AudioClip>(Environment.NewLine, audioClips);
-        await Context.Message.ReplyAsync(clipText);
-    }
+    #endregion
 }

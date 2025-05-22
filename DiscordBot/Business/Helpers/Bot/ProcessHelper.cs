@@ -18,14 +18,14 @@ internal static class ProcessHelper
                 RedirectStandardOutput = true,
             };
             var process = Process.Start(psi) ?? throw new Exception("Process could not be created.");
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync(new CancellationTokenSource(new TimeSpan(0,3,0)).Token);
 
             var info = await process.StandardOutput.ReadToEndAsync();
-            if (string.IsNullOrWhiteSpace(info))
+            if (!string.IsNullOrWhiteSpace(info))
                 Log.Information(info);
 
             var error = await process.StandardError.ReadToEndAsync();
-            if (string.IsNullOrWhiteSpace(error))
+            if (!string.IsNullOrWhiteSpace(error))
                 Log.Warning(error);
 
             return (info, error);

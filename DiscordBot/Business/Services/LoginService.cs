@@ -1,35 +1,43 @@
-﻿using DiscordBot.Business.Helpers.Blazor;
-using DiscordBot.Models.Internal.Configs;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+﻿using DiscordBot.Models.Discord;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using RestSharp;
 using Serilog;
 using System.Security.Claims;
-using DiscordBot.Models.Discord;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using DiscordBot.Models.Internal.Configs;
+using Microsoft.Extensions.Options;
+using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace DiscordBot.Components.User;
-public sealed class UserController([FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] IOptions<Configuration> options) : Controller
+namespace DiscordBot.Business.Services;
+
+internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOptions<Configuration> options)
 {
-    [Route("/User/DiscordOAuth2")]
-    public async Task<IActionResult> OnLoginDiscordAsync()
+    internal string GetDiscordAuthUrl() =>
+        new StringBuilder("https://discord.com/api/oauth2/authorize?client_id=")
+            .Append(options.Value.Discord.ClientId)
+            .Append("&redirect_uri=")
+            .Append(Uri.EscapeDataString(options.Value.Discord.RedirectUri))
+            .Append("&response_type=code&scope=")
+            .Append(Uri.EscapeDataString(options.Value.Discord.Scopes))
+            .ToString();
+
+    internal async Task<bool?> LoginUserAsync()
     {
         try
         {
             if (httpContextAccessor.HttpContext == null)
             {
-                Log.Error("No valid context is available.");
-                return Redirect(RouteHelper.Error);
+                Log.Warning("No context to operate on.");
+                return false;
             }
 
             var authorizationCode = httpContextAccessor.HttpContext.Request.Query.TryGetValue("code", out var value) ? value.ToString() : null;
             if (string.IsNullOrWhiteSpace(authorizationCode))
             {
                 Log.Error("No valid discord code!");
-                return Redirect(RouteHelper.Error);
+                return false;
             }
 
             var discord = options.Value.Discord;
@@ -44,14 +52,14 @@ public sealed class UserController([FromServices] IHttpContextAccessor httpConte
             if (!restResponse.IsSuccessful)
             {
                 Log.Error("Bad response from discord OAuth2 token validation.");
-                return Redirect(RouteHelper.Error);
+                return false;
             }
 
             var accessToken = (JsonConvert.DeserializeObject(restResponse.Content ?? string.Empty) as JObject)?["access_token"]?.Value<string>();
             if (string.IsNullOrWhiteSpace(accessToken))
             {
                 Log.Error("Could not deserialize response and get the access token.");
-                return Redirect(RouteHelper.Error);
+                return false;
             }
 
             var infoRequest = new RestRequest("/api/users/@me").AddHeader("Authorization", $"Bearer {accessToken}");
@@ -59,51 +67,50 @@ public sealed class UserController([FromServices] IHttpContextAccessor httpConte
             if (response.Data == null)
             {
                 Log.Error("Failed to retrieve user data.");
-                return Redirect(RouteHelper.Error);
+                return false;
             }
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Sid, response.Data.Id), new Claim(ClaimTypes.Name, response.Data.Username)], CookieAuthenticationDefaults.AuthenticationScheme));
             await httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-            return Redirect(RouteHelper.Home);
+            return true;
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error authentication via discord.");
-            return Redirect(RouteHelper.Error);
+            return false;
         }
     }
 
-    [Route("/User/Login")]
-    public IActionResult OnLogin()
+    /// <summary>
+    /// Logs out the user.
+    /// </summary>
+    /// <returns>A <see cref="bool"/> indicating success or failure.</returns>
+    /// <remarks>If there is no user to logout, it also returns <see langword="true"/></remarks>
+    internal async Task<bool> LogoutUserAsync()
     {
-        if (httpContextAccessor.HttpContext == null)
+        try
         {
-            Log.Warning("No context to login off.");
-            return Redirect(RouteHelper.Home);
+            if (httpContextAccessor.HttpContext == null)
+            {
+                Log.Warning("No context to operate on.");
+                return false;
+            }
+
+            var username = httpContextAccessor.HttpContext.User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                Log.Verbose("No identity to logout.");
+                return true;
+            }
+
+            Log.Verbose("Logging out '{username}'.", username);
+            await httpContextAccessor.HttpContext.SignOutAsync();
+            return true;
         }
-
-        var authLink = RouteHelper.CreateAuthUrl(options.Value.Discord);
-        return Redirect(authLink);
-    }
-
-    [Route("/User/Logout")]
-    public async Task<IActionResult> OnLogoutAsync()
-    {
-        if (httpContextAccessor.HttpContext == null)
+        catch (Exception ex)
         {
-            Log.Warning("No context to logout off.");
-            return Redirect(RouteHelper.Home);
+            Log.Error(ex, "Error logging out user.");
+            return false;
         }
-
-        var username = httpContextAccessor.HttpContext.User.Identity?.Name;
-        if (string.IsNullOrWhiteSpace(username))
-        {
-            Log.Verbose("No user to logout.");
-            return Redirect(RouteHelper.Home);
-        }
-
-        Log.Verbose("Logging out '{username}'.", username);
-        await httpContextAccessor.HttpContext.SignOutAsync();
-        return Redirect(RouteHelper.Home);
     }
 }

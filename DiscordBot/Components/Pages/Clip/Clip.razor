@@ -1,12 +1,15 @@
 ﻿@page "/Clip"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @using DiscordBot.Components.Pages.Clip.Partial;
 @using DiscordBot.Models.Entities
+@using Microsoft.AspNetCore.Authorization
 
-<h2>Clip</h2>
-<Manage AudioClips="_audioClips" />
-<Upload AddAudioClip="AddClip" />
-
+<h2>Clip-Page</h2>
+<div style="width: 100%; margin: auto">
+    <Manage AudioClips="_audioClips" />
+    <Upload AddAudioClip="AddClip" />
+</div>
 @code {
     private readonly List<AudioClip> _audioClips = [];
 

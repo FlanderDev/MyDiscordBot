@@ -1,21 +1,20 @@
-﻿@using DiscordBot.Business.Helpers.Blazor
-@using DiscordBot.Models.Internal.Configs
-@using Microsoft.Extensions.Options
-@inherits LayoutComponentBase
+﻿@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
+@inject LoginService LoginService
 @inject IHttpContextAccessor Context
-@inject IOptions<Configuration> Options
+@using DiscordBot.Business.Helpers.Blazor
+@using DiscordBot.Business.Services
+
 <header>
-    <h1>HEADER</h1>
+    <a href="@RouteHelper.Home"><h1>@RouteHelper.Home</h1></a>
     @if (Context.HttpContext?.User.Identity?.IsAuthenticated ?? false)
     {
         <p>Welcome, <b>@Context.HttpContext.User.Identity.Name</b></p>
-        <a href="/User/Logout">Logout</a>
+        <button @onclick="LoginService.LogoutUserAsync">Logout</button>
     }
     else
     {
-        <a href="@RouteHelper.CreateAuthUrl(Options.Value.Discord)">Authenticate with Discord</a>
+        <a href="@_authUrl">Authenticate with Discord</a>
     }
-    <p>------</p>
 </header>
 @Body
 
@@ -24,3 +23,9 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code
+{
+    protected override void OnInitialized() => _authUrl ??= LoginService.GetDiscordAuthUrl();
+    private static string? _authUrl;
+}

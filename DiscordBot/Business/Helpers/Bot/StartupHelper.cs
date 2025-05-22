@@ -64,7 +64,7 @@ internal static class StartupHelper
                 return true;
             }
 
-            var shouldFilePath = Path.Combine(FileHelper.BaseDirectory, opusDll);
+            var shouldFilePath = Path.Combine(Environment.CurrentDirectory, opusDll);
             if (File.Exists(shouldFilePath))
             {
                 Log.Verbose("{fileName} already exists.", opusDll);
@@ -74,7 +74,7 @@ internal static class StartupHelper
             // Yes really!
             var processorArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
             var opusFilePath= Directory
-                .EnumerateFiles(FileHelper.BaseDirectory, "libopus.dll", SearchOption.AllDirectories)
+                .EnumerateFiles(Environment.CurrentDirectory, "libopus.dll", SearchOption.AllDirectories)
                 .FirstOrDefault(f => f.Contains($"win-{processorArchitecture}", StringComparison.OrdinalIgnoreCase));
             if (opusFilePath == null)
             {

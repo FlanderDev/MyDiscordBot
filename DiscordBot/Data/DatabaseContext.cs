@@ -1,5 +1,6 @@
 ﻿using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Models.Entities;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -13,11 +14,14 @@ public sealed class DatabaseContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var databaseDirectory = FileHelper.GetDatabaseDirectory();
+        if (!Directory.Exists(databaseDirectory))
+            Directory.CreateDirectory(databaseDirectory);
+
         var relativePath = Path.Combine(databaseDirectory, nameof(DiscordBot));
         optionsBuilder.UseSqlite($"Data source={relativePath}.db");
     }
 
-    internal static bool CreateDefault()
+    internal static async Task<bool> CreateDefaultAsync()
     {
         try
         {
@@ -25,20 +29,34 @@ public sealed class DatabaseContext : DbContext
             if (!Directory.Exists(databaseDirectory))
                 Directory.CreateDirectory(databaseDirectory);
 
-            using var context = new DatabaseContext();
-            if (!context.Database.EnsureCreated())
+            await using var context = new DatabaseContext();
+            if (!await context.Database.EnsureCreatedAsync())
             {
                 Log.Verbose("Database did not need to be created.");
                 return true;
             }
 
-            context.DiscordUsers.Add(new DiscordUser
+            var araUrl = $"https://faunaraara.com/sounds/ara-{77}.mp3";
+            var result = await FileHelper.GetLocalResourceOrDownloadAsync($"ara-{77}.mp3", araUrl);
+            if (result == null)
+                throw new Exception("Could not find or download file.");
+
+            context.AudioClips.Add(new AudioClip
             {
-                Id = 229720939078615040,
-                GlobalName = "flander_lander",
+                CallCode = "default",
+                DiscordUserId = 229720939078615040,
+                FilePath = result,
+                DiscordUser = new DiscordUser
+                {
+                    Id = 229720939078615040,
+                    GlobalName = "flander_lander",
+                    Username = "Flan",
+                    Administrator = true
+                }
             });
 
-            context.SaveChanges();
+
+            await context.SaveChangesAsync();
             Log.Information("Created default database.");
             return true;
         }

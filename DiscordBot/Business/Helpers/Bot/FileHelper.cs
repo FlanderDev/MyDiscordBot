@@ -5,10 +5,9 @@ namespace DiscordBot.Business.Helpers.Bot;
 
 internal static class FileHelper
 {
-    internal static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
-    internal static string GetDatabaseDirectory() => Path.Combine(BaseDirectory, "Database");
-    internal static string GetFileUploadDirectory() => Path.Combine(BaseDirectory, "Uploads");
-    internal static string GetMediaDirectory() => Path.Combine(BaseDirectory, "MediaFiles");
+    internal static string GetDatabaseDirectory() => Path.Combine(Environment.CurrentDirectory, "Database");
+    internal static string GetFileUploadDirectory() => Path.Combine(Environment.CurrentDirectory, "Uploads");
+    internal static string GetMediaDirectory() => Path.Combine(Environment.CurrentDirectory, "MediaFiles");
 
     internal static async Task<string?> GetLocalResourceOrDownloadAsync(string fileName, string url)
     {
