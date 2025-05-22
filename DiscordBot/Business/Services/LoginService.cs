@@ -23,7 +23,7 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
             .Append(Uri.EscapeDataString(options.Value.Discord.Scopes))
             .ToString();
 
-    internal async Task<bool?> LoginUserAsync()
+    internal async Task<bool> LoginUserAsync()
     {
         try
         {

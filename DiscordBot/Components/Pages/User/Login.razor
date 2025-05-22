@@ -31,7 +31,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await LoginService.LoginUserAsync();
-        NavigationManager.NavigateTo(RouteHelper.Home);
+        if (await LoginService.LoginUserAsync())
+            NavigationManager.NavigateTo(RouteHelper.Home);
     }
 }
