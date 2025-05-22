@@ -15,6 +15,7 @@
 
 <h3>Clip-Manager</h3>
 <h5>TimeStamp (refreshes 10s): @DateTime.Now.Ticks</h5>
+<InputCheckbox @bind-Value="_disconnectWhenDone">Disconnect when done</InputCheckbox>
 <table class="table" style="width: 100%">
     <thead>
         <tr>
@@ -52,6 +53,8 @@
 {
     [Parameter]
     public List<AudioClip> AudioClips { get; set; } = [];
+
+    private bool _disconnectWhenDone;
 
     private List<AudioClipComponentData> AudioClipData { get; set; } = [];
     protected override async Task OnInitializedAsync()
@@ -107,6 +110,9 @@
             var audioClient = await socketGuildUser.VoiceChannel.ConnectAsync();
             using var audioHelper = new DiscordAudioHelper(audioClient);
             await audioHelper.PlayAudioAsync(audioData.AudioClip.FilePath);
+            if (_disconnectWhenDone)
+                await socketGuildUser.VoiceChannel.DisconnectAsync();
+
             audioData.Message = "Ready";
         }
         catch (Exception ex)
