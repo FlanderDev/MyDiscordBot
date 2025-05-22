@@ -2,16 +2,23 @@
 @inherits Microsoft.AspNetCore.Components.LayoutComponentBase
 @inject IHttpContextAccessor HttpContextAccessor
 
-<h2><a href="@RouteHelper.Home">Home</a></h2>
 <div class="mx-4 d-flex flex-column min-vh-100">
+    <h2><a href="@RouteHelper.Home">Home</a></h2>
     <div class="container text-center"></div>
+
     @Body
-    @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
-    {
-        <footer class="mt-auto">
+
+    <footer class="mt-auto">
+        @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
+        {
             <i>Welcome, @HttpContextAccessor.HttpContext?.User.Identity.Name</i>
-        </footer>
-    }
+            <button class="btn btn-danger">Logout</button>
+        }
+        else
+        {
+            <b>Bruh ain't logged in, couldn't be me.</b>
+        }
+    </footer>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>

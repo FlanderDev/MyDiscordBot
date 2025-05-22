@@ -1,7 +1,9 @@
 ﻿@page "/User/Login"
 @page "/User/oAuth/Discord"
 @inject LoginService LoginService
+@inject NavigationManager NavigationManager
 @inject IHttpContextAccessor HttpContextAccessor
+@using DiscordBot.Business.Helpers.Blazor
 @using DiscordBot.Business.Services
 
 <h1>Login-Page</h1>
@@ -30,5 +32,6 @@
     protected override async Task OnParametersSetAsync()
     {
         await LoginService.LoginUserAsync();
+        NavigationManager.NavigateTo(RouteHelper.Home);
     }
 }
