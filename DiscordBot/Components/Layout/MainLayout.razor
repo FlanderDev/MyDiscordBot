@@ -12,7 +12,6 @@
         @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
         {
             <i>Welcome, @HttpContextAccessor.HttpContext?.User.Identity.Name</i>
-            <button class="btn btn-danger">Logout</button>
         }
         else
         {

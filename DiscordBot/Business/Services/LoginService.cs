@@ -39,6 +39,7 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
                 Log.Error("No valid discord code!");
                 return false;
             }
+            Log.Verbose("Got auth-code '{code}'.", authorizationCode);
 
             var discord = options.Value.Discord;
             var restClient = new RestClient("https://discord.com");
@@ -52,22 +53,23 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
             if (!restResponse.IsSuccessful)
             {
                 Log.Error("Bad response from discord OAuth2 token validation.");
-                return false;
+                return true;
             }
 
             var accessToken = (JsonConvert.DeserializeObject(restResponse.Content ?? string.Empty) as JObject)?["access_token"]?.Value<string>();
             if (string.IsNullOrWhiteSpace(accessToken))
             {
                 Log.Error("Could not deserialize response and get the access token.");
-                return false;
+                return true;
             }
+            Log.Verbose("Got access-token '{token}'.", accessToken);
 
             var infoRequest = new RestRequest("/api/users/@me").AddHeader("Authorization", $"Bearer {accessToken}");
             var response = await restClient.ExecuteAsync<UserSelf>(infoRequest);
             if (response.Data == null)
             {
                 Log.Error("Failed to retrieve user data.");
-                return false;
+                return true;
             }
 
             var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Sid, response.Data.Id), new Claim(ClaimTypes.Name, response.Data.Username)], CookieAuthenticationDefaults.AuthenticationScheme));
