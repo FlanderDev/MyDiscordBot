@@ -1,10 +1,10 @@
 ﻿@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
 @inject IHttpContextAccessor HttpContextAccessor
 
-<div class="dismiss">
+<div class="">
     @Body
 
-    @if (HttpContextAccessor.HttpContext?.User.Identity != null)
+    @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
     {
         <footer>
             <i>Welcome, @HttpContextAccessor.HttpContext?.User.Identity.Name</i>

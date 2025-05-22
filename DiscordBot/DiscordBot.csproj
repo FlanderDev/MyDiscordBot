@@ -26,4 +26,9 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\DiscordBot\wwwroot\lib\bootstrap\app.css" Link="wwwroot\app.css" />
+		<None Include="..\DiscordBot\wwwroot\lib\bootstrap\css\bootstrap.min.css" Link="wwwroot\bootstrap\bootstrap.min.css" />
+	</ItemGroup>
 </Project>

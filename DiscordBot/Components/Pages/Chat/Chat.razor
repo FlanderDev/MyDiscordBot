@@ -1,70 +1,92 @@
 ﻿@page "/Chat"
+@* @page "/Chat/{GuildId}/0" *@
+@page "/Chat/{GuildId}/{ChannelId}"
+@rendermode InteractiveServer
 @inject DiscordNet DiscordNet
 @using Discord
 @using Discord.WebSocket
 @using DiscordBot.Business.Bots
-@using Microsoft.AspNetCore.Authorization
-@using Serilog
+@using DiscordBot.Business.Helpers.Blazor
+
+<h3>Select an option</h3>
 
 <h3>Chat</h3>
-<InputSelect TValue="SocketGuild" ValueChanged="OnSelectedGuild">
-    @foreach (var socketGuild in DiscordNet.DiscordSocketClient.Guilds)
-    {
-        <option value="@socketGuild">
-            <img src="@socketGuild.IconUrl" alt="server icon" />
-            <b>@socketGuild.Name</b>
-        </option>
-    }
-</InputSelect>
-
-<InputSelect TValue="SocketTextChannel" ValueChanged="OnSelectedChannel">
-    @foreach (var channel in Channels.OfType<SocketTextChannel>())
-    {
-        <option value="@channel">@channel.Name</option>
-    }
-</InputSelect>
-
-@foreach (var message in Messages)
-{
+<div>
     <div>
-        <b>@message.Author.GlobalName</b>
-        <p>@message.CleanContent</p>
+        @foreach (var guild in Guilds)
+        {
+            <div>
+                <img width="100rem" height="100rem" src="@guild.IconUrl" alt="server icon" />
+                <a href="@($"{RouteHelper.Chat}/{guild.Id}/{ChannelId}")">@guild.Name</a>
+            </div>
+        }
     </div>
-}
 
-<InputTextArea @bind-Value="CurrentMessage" @onsubmit="SendCurrentMessageAsync"></InputTextArea>
+    <div>
+        @foreach (var channel in TextChannels)
+        {
+            <div>
+                <a href="@($"{RouteHelper.Chat}/{GuildId}/{channel.Id}")">@channel.Name</a>
+            </div>
+        }
+    </div>
 
+    <div>
+        @foreach (var message in Messages)
+        {
+            <b>@message.Author.GlobalName</b>
+            <p>@message.Content</p>
+        }
+    </div>
+
+    <div>
+        <InputTextArea @bind-Value="Message"></InputTextArea>
+        <button @onclick="SendMessageAsync">Send</button>
+    </div>
+</div>
 
 @code {
-    private IReadOnlyCollection<SocketGuildChannel> Channels { get; set; } = [];
-    private SocketTextChannel? SelectedChannel { get; set; }
-    private IReadOnlyCollection<IMessage> Messages { get; set; } = [];
-
-    private void OnSelectedGuild(SocketGuild socketGuild) => Channels = socketGuild.Channels;
-    private void OnSelectedChannel(SocketTextChannel socketTextChannel)
+    [Parameter]
+    public string GuildId
     {
-        SelectedChannel = socketTextChannel;
+        get => _guildId.ToString();
+        set => _guildId = ulong.TryParse(value, out var num) ? num : 0;
     }
+    private ulong _guildId;
 
-    private string CurrentMessage { get; set; } = string.Empty;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    [Parameter]
+    public string ChannelId
     {
-        if (SelectedChannel == null)
-        {
-            Log.Warning("Selected channel was null, when it should not.");
-            return;
-        }
+        get => _channelId.ToString();
+        set => _channelId = ulong.TryParse(value, out var num) ? num : 0;
+    }
+    private ulong _channelId;
 
-        var messages = await SelectedChannel.GetMessagesAsync(4).ToListAsync();
+    public SocketTextChannel? TextChannel { get; set; }
+    public IReadOnlyCollection<SocketGuild> Guilds = [];
+    public IReadOnlyCollection<SocketTextChannel> TextChannels = [];
+    public IReadOnlyCollection<IMessage> Messages = [];
+    public string Message = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Guilds = DiscordNet.DiscordSocketClient.Guilds;
+        var guild = DiscordNet.DiscordSocketClient.Guilds.FirstOrDefault(f => f.Id == _guildId);
+        if (guild == null)
+            return;
+
+        TextChannels = guild.TextChannels;
+        TextChannel = guild.TextChannels.FirstOrDefault(f => f.Id == _channelId);
+        if (TextChannel == null)
+            return;
+
+        var messages = await TextChannel.GetMessagesAsync(4).ToListAsync();
         Messages = messages.SelectMany(s => s).ToList();
     }
 
-    private async Task SendCurrentMessageAsync()
+    private async Task SendMessageAsync()
     {
-        if (SelectedChannel == null || string.IsNullOrWhiteSpace(CurrentMessage))
-            return;
-
-        await SelectedChannel.SendMessageAsync(CurrentMessage);
+        if (TextChannel != null && !string.IsNullOrWhiteSpace(Message))
+            await TextChannel.SendMessageAsync(Message);
     }
 }
