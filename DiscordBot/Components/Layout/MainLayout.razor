@@ -1,31 +1,19 @@
 ﻿@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
-@inject LoginService LoginService
-@inject IHttpContextAccessor Context
-@using DiscordBot.Business.Helpers.Blazor
-@using DiscordBot.Business.Services
+@inject IHttpContextAccessor HttpContextAccessor
 
-<header>
-    <a href="@RouteHelper.Home"><h1>@RouteHelper.Home</h1></a>
-    @if (Context.HttpContext?.User.Identity?.IsAuthenticated ?? false)
+<div class="dismiss">
+    @Body
+
+    @if (HttpContextAccessor.HttpContext?.User.Identity != null)
     {
-        <p>Welcome, <b>@Context.HttpContext.User.Identity.Name</b></p>
-        <button @onclick="LoginService.LogoutUserAsync">Logout</button>
+        <footer>
+            <i>Welcome, @HttpContextAccessor.HttpContext?.User.Identity.Name</i>
+        </footer>
     }
-    else
-    {
-        <a href="@_authUrl">Authenticate with Discord</a>
-    }
-</header>
-@Body
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
-
-@code
-{
-    protected override void OnInitialized() => _authUrl ??= LoginService.GetDiscordAuthUrl();
-    private static string? _authUrl;
-}

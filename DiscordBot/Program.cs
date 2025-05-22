@@ -6,8 +6,10 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
+using DiscordBot.Business.Helpers.Blazor;
 using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Business.Services;
+using DiscordBot.Components.Pages.User;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 try
@@ -66,10 +68,10 @@ try
     // await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
     // TL;DR: Problem for future me.
     builder.Services
-        .AddDbContext<DatabaseContext>()
+        .AddDbContext<DatabaseContext>();
         // Different problem: 'AddHostedService' doesn't register it for DI, so I'm adding a singleton and requesting it.
-        .AddSingleton<DiscordNet>()
-        .AddHostedService(o => o.GetRequiredService<DiscordNet>()); 
+        //.AddSingleton<DiscordNet>()
+        //.AddHostedService(o => o.GetRequiredService<DiscordNet>()); 
 
     builder.Services
         .AddRazorComponents()
@@ -79,9 +81,9 @@ try
         .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, o =>
         {
-            o.LoginPath = "/User/Login";
-            o.LogoutPath = "/User/Logout";
-            o.AccessDeniedPath = "/Home?ADP";
+            o.LoginPath = RouteHelper.Login;
+            o.LogoutPath = RouteHelper.Login;
+            o.AccessDeniedPath = RouteHelper.Login;
         });
 
     builder.Services
