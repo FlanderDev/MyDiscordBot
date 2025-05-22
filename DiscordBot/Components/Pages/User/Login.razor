@@ -6,13 +6,13 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @using DiscordBot.Business.Helpers.Blazor
 @using DiscordBot.Business.Services
+@using Serilog
 
 <h1>Login-Page</h1>
 <div>
     @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
     {
         <p>Welcome, <b>@HttpContextAccessor.HttpContext.User.Identity.Name</b></p>
-        <button @onclick="LogoutUserAsync">Logout</button>
     }
     else
     {
@@ -22,9 +22,9 @@
 
 @code
 {
+    [Parameter]
+    public string State { get; set; } = string.Empty;
     private static string? _authUrl;
-
-    private async Task LogoutUserAsync() => await LoginService.LogoutUserAsync();
 
     protected override Task OnInitializedAsync()
     {
@@ -32,9 +32,17 @@
         return Task.CompletedTask;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (await LoginService.LoginUserAsync()) // TODO: Always errors here if no code...
-            NavigationManager.NavigateTo(RouteHelper.Home);
+        if (string.IsNullOrWhiteSpace(State))
+            return;
+
+        if (State.Equals("Login", StringComparison.OrdinalIgnoreCase))
+            await LoginService.LoginUserAsync();
+        else if (State.Equals("Logout", StringComparison.OrdinalIgnoreCase))
+            await LoginService.LogoutUserAsync();
+
+        Log.Warning("Invalid state '{state}'.", State);
+        NavigationManager.NavigateTo(RouteHelper.Home);
     }
 }
