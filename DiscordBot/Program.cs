@@ -79,9 +79,9 @@ try
         .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, o =>
         {
-            o.LoginPath = $"{RouteHelper.User}/Login";
-            o.LogoutPath = $"{RouteHelper.User}/Logout";
-            //o.AccessDeniedPath = idk yet
+            o.LoginPath = RouteHelper.Login;
+            o.LogoutPath = RouteHelper.Login;
+            o.AccessDeniedPath = RouteHelper.Login;
         });
 
     builder.Services
