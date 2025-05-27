@@ -1,14 +1,14 @@
 using DiscordBot.Business.Bots;
+using DiscordBot.Business.Helpers.Blazor;
+using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Components;
 using DiscordBot.Data;
 using DiscordBot.Models.Internal.Configs;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
-using DiscordBot.Business.Helpers.Blazor;
-using DiscordBot.Business.Helpers.Bot;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 try
 {

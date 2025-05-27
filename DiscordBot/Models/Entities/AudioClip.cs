@@ -18,5 +18,5 @@ public sealed class AudioClip
     public string FilePath { get; set; } = string.Empty;
 
     public override string ToString() => $"{Id} - {DiscordUserId} - '{CallCode}'";
-        
+
 }

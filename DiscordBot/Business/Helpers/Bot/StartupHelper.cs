@@ -73,7 +73,7 @@ internal static class StartupHelper
 
             // Yes really!
             var processorArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
-            var opusFilePath= Directory
+            var opusFilePath = Directory
                 .EnumerateFiles(Environment.CurrentDirectory, "libopus.dll", SearchOption.AllDirectories)
                 .FirstOrDefault(f => f.Contains($"win-{processorArchitecture}", StringComparison.OrdinalIgnoreCase));
             if (opusFilePath == null)

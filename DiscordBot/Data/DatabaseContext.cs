@@ -1,6 +1,5 @@
 ﻿using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Models.Entities;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 

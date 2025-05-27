@@ -2,7 +2,6 @@
 using Discord.Commands;
 using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.RegularExpressions;
 

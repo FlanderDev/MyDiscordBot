@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
-using Serilog;
-using System.Reflection;
-using DiscordBot.Components.Pages;
+﻿using DiscordBot.Components.Pages;
 using DiscordBot.Components.Pages.Chat;
 using DiscordBot.Components.Pages.Clip;
 using DiscordBot.Components.Pages.User;
+using Microsoft.AspNetCore.Components;
+using Serilog;
+using System.Reflection;
 
 namespace DiscordBot.Business.Helpers.Blazor;
 

@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using DiscordBot.Models.Entities;
-using Serilog;
 using System.Security.Claims;
 
 namespace DiscordBot.Business.Helpers.Bot;
