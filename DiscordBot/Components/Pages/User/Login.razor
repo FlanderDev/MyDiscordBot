@@ -1,42 +1,28 @@
-﻿@page "/User"
-@page "/User/{State}"
+﻿@page "/Login"
 @page "/User/oAuth/Discord"
 @rendermode InteractiveServer
 @inject LoginService LoginService
 @inject NavigationManager NavigationManager
-@inject IHttpContextAccessor HttpContextAccessor
 @using DiscordBot.Business.Helpers.Blazor
-@using DiscordBot.Business.Services
-@using Serilog
 
-<h1>Login-Page</h1>
-<div>
-    @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
-    {
-        <p>Welcome, <b>@HttpContextAccessor.HttpContext.User.Identity.Name</b></p>
-    }
-    else
-    {
-        <a href="@_authUrl">Login with Discord</a>
-    }
-</div>
+<a href="@LoginService.DiscordAuthUrl">Click here to retry login.</a>
 
 @code
 {
-    [Parameter]
-    public string State { get; set; } = string.Empty;
-    private static string? _authUrl;
+    [SupplyParameterFromQuery(Name = "code")]
+    private string? DiscordOAuthCode { get; set; }
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        _authUrl ??= LoginService.GetDiscordAuthUrl();
-        return Task.CompletedTask;
+        if (DiscordOAuthCode != null)
+            await LoginService.LoginUserAsync(DiscordOAuthCode);
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnAfterRender(bool firstRender)
     {
-        await LoginService.LogoutUserAsync();
-        if (await LoginService.LoginUserAsync())
+        if (DiscordOAuthCode == null && !LoginService.UserIsLoggedIn)
+            NavigationManager.NavigateTo(LoginService.DiscordAuthUrl);
+        else
             NavigationManager.NavigateTo(RouteHelper.Home);
     }
 }

@@ -10,11 +10,11 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace DiscordBot.Business.Services;
+namespace DiscordBot.Business.Helpers.Blazor;
 
 internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOptions<Configuration> options)
 {
-    internal string GetDiscordAuthUrl() =>
+    internal readonly string DiscordAuthUrl =
         new StringBuilder("https://discord.com/api/oauth2/authorize?client_id=")
             .Append(options.Value.Discord.ClientId)
             .Append("&redirect_uri=")
@@ -23,7 +23,25 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
             .Append(Uri.EscapeDataString(options.Value.Discord.Scopes))
             .ToString();
 
-    internal async Task<bool> LoginUserAsync()
+    internal bool UserIsLoggedIn => httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false;
+
+    internal string? GetDiscordOAuthCodeFromQuery()
+    {
+        if (httpContextAccessor.HttpContext == null)
+        {
+            Log.Warning("No context to operate on.");
+            return null;
+        }
+
+        var authorizationCode = httpContextAccessor.HttpContext.Request.Query.TryGetValue("code", out var value) ? value.ToString() : null;
+        if (string.IsNullOrWhiteSpace(authorizationCode))
+            return null;
+
+        Log.Verbose("Got auth-code '{code}'.", authorizationCode);
+        return authorizationCode;
+    }
+
+    internal async Task<bool> LoginUserAsync(string authorizationCode)
     {
         try
         {
@@ -32,14 +50,6 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
                 Log.Warning("No context to operate on.");
                 return false;
             }
-
-            var authorizationCode = httpContextAccessor.HttpContext.Request.Query.TryGetValue("code", out var value) ? value.ToString() : null;
-            if (string.IsNullOrWhiteSpace(authorizationCode))
-            {
-                Log.Error("No valid discord code!");
-                return false;
-            }
-            Log.Verbose("Got auth-code '{code}'.", authorizationCode);
 
             var discord = options.Value.Discord;
             var restClient = new RestClient("https://discord.com");

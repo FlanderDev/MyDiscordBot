@@ -15,7 +15,9 @@
 
 <h3>Clip-Manager</h3>
 <h5>TimeStamp (refreshes 10s): @DateTime.Now.Ticks</h5>
-<InputCheckbox @bind-Value="_disconnectWhenDone">Disconnect when done</InputCheckbox>
+<label>Disconnect when done
+    <InputCheckbox @bind-Value="_disconnectWhenDone"/>
+</label>
 <table class="table" style="width: 100%">
     <thead>
         <tr>

@@ -8,7 +8,6 @@ using Serilog.Events;
 using System.Reflection;
 using DiscordBot.Business.Helpers.Blazor;
 using DiscordBot.Business.Helpers.Bot;
-using DiscordBot.Business.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 try
@@ -23,7 +22,7 @@ try
 
     Log.Information("Initialized logging.");
 
-    AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Error(e.ExceptionObject as Exception, "Unhandled Exception.");
+    AppDomain.CurrentDomain.UnhandledException += (_, e) => Log.Fatal(e.ExceptionObject as Exception, "Unhandled Exception.");
 
 
     var builder = WebApplication.CreateBuilder(args);
@@ -48,7 +47,7 @@ try
 
     builder.Services.AddScoped<LoginService>();
 
-    if (! await DatabaseContext.CreateDefaultAsync())
+    if (!await DatabaseContext.CreateDefaultAsync())
     {
         Log.Warning("Failed to create default database, stopping application.");
         return 101;

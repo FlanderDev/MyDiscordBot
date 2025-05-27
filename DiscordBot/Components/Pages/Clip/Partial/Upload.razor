@@ -11,7 +11,9 @@
 @using Serilog
 
 <h3>Upload-Manager</h3>
-<InputFile OnChange="HandleSelectedFiles" AdditionalAttributes="InputFileAttribute" />
+<label class="btn btn-primary">Upload File(s)
+    <InputFile OnChange="HandleSelectedFiles" AdditionalAttributes="InputFileAttribute" />
+</label>
 <table class="table">
     <thead>
         <tr>
@@ -55,7 +57,8 @@
     private static readonly Dictionary<string, object> InputFileAttribute = new()
     {
         { "accept", string.Join(", ", _validExtensions) },
-        { "multiple", true }
+        { "multiple", true },
+        { "hidden",  true}
     };
 
     private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
