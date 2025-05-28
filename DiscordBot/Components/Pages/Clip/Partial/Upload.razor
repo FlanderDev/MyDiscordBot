@@ -122,7 +122,7 @@
                     {
                         CallCode = Path.GetFileNameWithoutExtension(browserFile.Name),
                         DiscordUserId = discordId.Value,
-                        FilePath = Path.GetRelativePath(Environment.CurrentDirectory, filePath)
+                        FilePath = Path.GetRelativePath(FileHelper.AppStorage.FullName, filePath)
                     };
 
                 var result = await ClipHelper.AddNewClipAsync(audioClip);

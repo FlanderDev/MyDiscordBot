@@ -111,7 +111,7 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
             var username = httpContextAccessor.HttpContext.User.Identity?.Name;
             if (string.IsNullOrWhiteSpace(username))
             {
-                Log.Verbose("No identity to logout.");
+                Log.Warning("No identity to logout.");
                 return true;
             }
 

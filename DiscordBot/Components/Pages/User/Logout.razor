@@ -1,0 +1,13 @@
+﻿@page "/Logout"
+@rendermode InteractiveServer
+@inject LoginService LoginService
+@inject NavigationManager NavigationManager
+@using DiscordBot.Business.Helpers.Blazor
+
+<a href="@RouteHelper.Logout">Click here to retry logout.</a>
+
+@code
+{
+    protected override async Task OnInitializedAsync() => await LoginService.LogoutUserAsync();
+    protected override void OnAfterRender(bool firstRender) => NavigationManager.NavigateTo(RouteHelper.Home);
+}

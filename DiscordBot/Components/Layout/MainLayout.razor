@@ -1,6 +1,6 @@
-﻿@using DiscordBot.Business.Helpers.Blazor
-@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
+﻿@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
 @inject IHttpContextAccessor HttpContextAccessor
+@using DiscordBot.Business.Helpers.Blazor
 
 <div class="mx-4 d-flex flex-column min-vh-100">
     <h2><a href="@RouteHelper.Home">Home</a></h2>
@@ -11,11 +11,11 @@
     <footer class="mt-auto">
         @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
         {
-            <i>Welcome, @HttpContextAccessor.HttpContext?.User.Identity.Name</i>
+            <p>Welcome <i>@HttpContextAccessor.HttpContext?.User.Identity.Name</i>, wanna <a href="@RouteHelper.Logout">leave</a>?</p>
         }
         else
         {
-            <b>Bruh ain't logged in, couldn't be me.</b>
+            <b>Bruh ain't <a href="@RouteHelper.Login">logged in</a>, couldn't be me.</b>
         }
     </footer>
 </div>

@@ -15,6 +15,7 @@ public static class RouteHelper
     internal static readonly string Clip = GetPageRouteTemplate<Clip>();
     internal static readonly string Chat = GetPageRouteTemplate<Chat>();
     internal static readonly string Login = GetPageRouteTemplate<Login>();
+    internal static readonly string Logout = GetPageRouteTemplate<Logout>();
 
     public static string GetPageRouteTemplate<T>() where T : ComponentBase
     {

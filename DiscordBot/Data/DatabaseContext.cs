@@ -39,7 +39,7 @@ public sealed class DatabaseContext : DbContext
             var result = await FileHelper.GetLocalResourceOrDownloadAsync($"ara-{77}.mp3", araUrl) ?? throw new Exception("Could not find or download file.");
             context.AudioClips.Add(new AudioClip
             {
-                CallCode = "default",
+                CallCode = "test",
                 DiscordUserId = 229720939078615040,
                 FilePath = result,
                 DiscordUser = new DiscordUser

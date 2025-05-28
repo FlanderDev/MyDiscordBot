@@ -12,7 +12,9 @@ using System.Reflection;
 
 try
 {
-    Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+#if DEBUG
+    Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory; // Since files will be moved into the running directory and I don't want them in my project dir.
+#endif
 
     Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Verbose()
@@ -47,6 +49,7 @@ try
 
     builder.Services.AddScoped<LoginService>();
 
+    FileHelper.AppStorage.Create();
     if (!await DatabaseContext.CreateDefaultAsync())
     {
         Log.Warning("Failed to create default database, stopping application.");
@@ -80,8 +83,8 @@ try
         .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, o =>
         {
             o.LoginPath = RouteHelper.Login;
-            o.LogoutPath = RouteHelper.Login;
-            o.AccessDeniedPath = RouteHelper.Login;
+            o.LogoutPath = RouteHelper.Logout;
+            o.AccessDeniedPath = RouteHelper.Error;
         });
 
     builder.Services

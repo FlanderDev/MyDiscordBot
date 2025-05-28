@@ -14,7 +14,7 @@
 @using Serilog
 
 <h3>Clip-Manager</h3>
-<h5>TimeStamp (refreshes 10s): @DateTime.Now.Ticks</h5>
+<h5>TimeStamp (refreshes @(RefreshInSeconds)s): @DateTime.Now.Ticks</h5>
 <label>Disconnect when done
     <InputCheckbox @bind-Value="_disconnectWhenDone"/>
 </label>
@@ -30,7 +30,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var audioData in AudioClipData)
+        @foreach (var audioData in _audioClipData)
         {
             <tr>
                 <td>@audioData.AudioClip.Id</td>
@@ -42,9 +42,9 @@
                 }
                 else
                 {
-                    <th>@audioData.AudioClip.DiscordUser.Username<i>@audioData.AudioClip.DiscordUser.GlobalName</i></th>
+                    <th>@audioData.AudioClip.DiscordUser.Username (<i>@audioData.AudioClip.DiscordUser.GlobalName</i>)</th>
                 }
-                <td><button @onclick="() => PlayClipAsync(audioData)">Play</button></td>
+                <td><button title="Join your VC" @onclick="() => PlayClipAsync(audioData)">Play</button></td>
                 <td>@audioData.Message</td>
             </tr>
         }
@@ -53,12 +53,13 @@
 
 @code
 {
+    private const int RefreshInSeconds = 3;
+
     [Parameter]
     public List<AudioClip> AudioClips { get; set; } = [];
 
     private bool _disconnectWhenDone;
-
-    private List<AudioClipComponentData> AudioClipData { get; set; } = [];
+    private List<AudioClipComponentData> _audioClipData = [];
     protected override async Task OnInitializedAsync()
     {
         var queryResult = await DatabaseContext.AudioClips
@@ -69,12 +70,12 @@
         var clipData = queryResult
             .Select(s => new AudioClipComponentData { AudioClip = s })
             .ToList();
-        AudioClipData = clipData;
+        _audioClipData = clipData;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Task.Delay(3_000);
+        await Task.Delay(RefreshInSeconds * 1000);
         StateHasChanged();
     }
 
