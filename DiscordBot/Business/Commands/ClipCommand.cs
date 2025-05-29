@@ -1,9 +1,13 @@
-﻿using Discord;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection;
+using Discord;
 using Discord.Commands;
 using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Models.Entities;
 using Serilog;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.HttpLogging;
+using RestSharp.Extensions;
 
 namespace DiscordBot.Business.Commands;
 
@@ -43,8 +47,25 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 return;
             }
 
+            var callCodeProperty = typeof(AudioClip).GetProperty(nameof(AudioClip.CallCode));
+            if (callCodeProperty == null) // If this branch is ever hit; I'll be sobbing on the floor.
+            {
+                Log.Fatal("Could not get property '{callCodePropertyName}'.", nameof(AudioClip.CallCode));
+                await Context.Message.ReplyAsync("Internal program error please inform the developer.");
+                return;
+            }
+
+            var callCodeMaxLength = Attribute.GetCustomAttribute(callCodeProperty, typeof(AudioClip)) as MaxLengthAttribute;
+            if (callCodeMaxLength?.Length < callCode.Length)
+            {
+                Log.Verbose("The call code '{callCode}' is '{callCodeLength}' long, which is more then the allowed '{callCodeMaxLength}'.", callCode, callCode.Length, callCodeMaxLength);
+                await Context.Message.ReplyAsync("Internal program error please inform the developer.");
+                return;
+            }
+
             if (await ClipHelper.DoesCallCodeExistAsync(callCode))
             {
+                Log.Verbose("The callCode '{callCode}' already exists.", callCode);
                 await Context.Message.ReplyAsync($"The callCode '{callCode}' already exists.");
                 return;
             }

@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @inject LoginService LoginService
 @inject NavigationManager NavigationManager
+@using System.Web
 @using DiscordBot.Business.Helpers.Blazor
 
 <a href="@LoginService.DiscordAuthUrl">Click here to retry login.</a>
@@ -12,6 +13,9 @@
     [SupplyParameterFromQuery(Name = "code")]
     private string? DiscordOAuthCode { get; set; }
 
+    [SupplyParameterFromQuery(Name = "state")]
+    private string? ReturnUrl { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (DiscordOAuthCode != null)
@@ -20,9 +24,16 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (DiscordOAuthCode == null && !LoginService.UserIsLoggedIn)
-            NavigationManager.NavigateTo(LoginService.DiscordAuthUrl);
-        else
-            NavigationManager.NavigateTo(RouteHelper.Home);
+        if (ReturnUrl != null)
+        {
+            NavigationManager.NavigateTo(ReturnUrl);
+            return;
+        }
+
+        if (LoginService.UserIsLoggedIn)
+            return;
+
+        var returnUrl = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get("ReturnUrl");
+        NavigationManager.NavigateTo(returnUrl == null ? LoginService.DiscordAuthUrl : $"{LoginService.DiscordAuthUrl}&state={returnUrl}");
     }
 }

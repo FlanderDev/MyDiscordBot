@@ -1,22 +1,23 @@
 ﻿@page "/Clip/Manage"
-@attribute [Authorize]
 @rendermode InteractiveServer
 @inject IHttpContextAccessor HttpContextAccessor
 @inject DatabaseContext DatabaseContext
+@inject LoginService LoginService
 @inject DiscordNet DiscordNet
 @using Discord.WebSocket
 @using DiscordBot.Business.Bots
+@using DiscordBot.Business.Helpers.Blazor
 @using DiscordBot.Business.Helpers.Bot
 @using DiscordBot.Data
 @using DiscordBot.Models.Entities
-@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Serilog
 
 <h3>Clip-Manager</h3>
 <h5>TimeStamp (refreshes @(RefreshInSeconds)s): @DateTime.Now.Ticks</h5>
-<label>Disconnect when done
-    <InputCheckbox @bind-Value="_disconnectWhenDone"/>
+<label>
+    Disconnect when done
+    <InputCheckbox @bind-Value="_disconnectWhenDone" />
 </label>
 <table class="table" style="width: 100%">
     <thead>
@@ -25,8 +26,15 @@
             <th>CallCode</th>
             <th>FileName</th>
             <th>User</th>
-            <th>Play</th>
-            <th>Message</th>
+            @if (LoginService.UserIsLoggedIn)
+            {
+                <th>Play</th>
+            }
+            else
+            {
+                <th>Play (<a href=""></a>)</th>
+            }
+            <th>Status</th>
         </tr>
     </thead>
     <tbody>
@@ -44,8 +52,13 @@
                 {
                     <th>@audioData.AudioClip.DiscordUser.Username (<i>@audioData.AudioClip.DiscordUser.GlobalName</i>)</th>
                 }
-                <td><button title="Join your VC" @onclick="() => PlayClipAsync(audioData)">Play</button></td>
-                <td>@audioData.Message</td>
+                <td>
+                    @if (LoginService.UserIsLoggedIn)
+                    {
+                        <button title="Join your VC" @onclick="() => PlayClipAsync(audioData)">Play</button>
+                    }
+                </td>
+                <td>@audioData.StatusMessage</td>
             </tr>
         }
     </tbody>
@@ -83,19 +96,19 @@
     {
         try
         {
-            audioData.Message = "Processing...";
+            audioData.StatusMessage = "Processing...";
             var id = HttpContextAccessor.GetUserIdFromHttpContextAccessor();
             if (id == null)
             {
                 Log.Warning("Invalid sid from httpContext.");
-                audioData.Message = "You need to re-authenticate.";
+                audioData.StatusMessage = "You need to re-authenticate.";
                 return;
             }
 
             if (await DiscordNet.DiscordSocketClient.GetUserAsync(id.Value) is not SocketUser socketUser)
             {
                 Log.Warning("Could not user from id.");
-                audioData.Message = "You're not connected to a VC on a server.";
+                audioData.StatusMessage = "You're not connected to a VC on a server.";
                 return;
             }
 
@@ -105,29 +118,29 @@
             if (socketGuildUser == null)
             {
                 Log.Verbose("User dosen't seem to be in any VC of a guild the bot is also in.");
-                audioData.Message = $"Can't access the VC, on {socketUser}";
+                audioData.StatusMessage = $"Can't access the VC, on {socketUser}";
                 return;
             }
 
-            audioData.Message = "Playing...";
+            audioData.StatusMessage = "Playing...";
             var audioClient = await socketGuildUser.VoiceChannel.ConnectAsync();
             using var audioHelper = new DiscordAudioHelper(audioClient);
             await audioHelper.PlayAudioAsync(audioData.AudioClip.FilePath);
             if (_disconnectWhenDone)
                 await socketGuildUser.VoiceChannel.DisconnectAsync();
 
-            audioData.Message = "Ready";
+            audioData.StatusMessage = "Ready";
         }
         catch (Exception ex)
         {
             Log.Error(ex, "Error playing audioClip initiated by blazor.");
-            audioData.Message = "Error";
+            audioData.StatusMessage = "Error";
         }
     }
 
     private sealed class AudioClipComponentData
     {
         internal required AudioClip AudioClip { get; init; }
-        internal string Message { get; set; } = "Ready";
+        internal string StatusMessage { get; set; } = "Ready";
     }
 }
