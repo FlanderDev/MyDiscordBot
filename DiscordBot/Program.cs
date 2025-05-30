@@ -19,7 +19,8 @@ try
     Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Verbose()
     .WriteTo.File("Log/log.txt", restrictedToMinimumLevel: LogEventLevel.Information)
-    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose)
+    .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information)
+    
     .CreateLogger();
 
     Log.Information("Initialized logging.");

@@ -21,7 +21,10 @@
     protected override async Task OnInitializedAsync()
     {
         if (DiscordOAuthCode != null)
+        {
+            Log.Information("Logging in user with from WEB-UI.");
             await LoginService.LoginUserAsync(DiscordOAuthCode);
+        }
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -35,13 +38,12 @@
         if (LoginService.UserIsLoggedIn)
             return;
 
-        if (DiscordOAuthCode == null)
+        if (DiscordOAuthCode != null)
         {
-            var returnUrl = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get("ReturnUrl");
-            NavigationManager.NavigateTo(returnUrl == null ? LoginService.DiscordAuthUrl : $"{LoginService.DiscordAuthUrl}&state={returnUrl}");
-            return;
+            
         }
 
-        Log.Error("HOW DID U LAND HERE?!");
+        var returnUrl = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get("ReturnUrl");
+        NavigationManager.NavigateTo(returnUrl == null ? LoginService.DiscordAuthUrl : $"{LoginService.DiscordAuthUrl}&state={returnUrl}");
     }
 }
