@@ -77,7 +77,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
-#if !DEBUG
+#if Release
             if (await DiscordSocketClient.GetChannelAsync(1270659363132145796) is ITextChannel textChannel)
             {
                 DebugChannel = textChannel;

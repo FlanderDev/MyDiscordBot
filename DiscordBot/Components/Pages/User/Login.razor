@@ -40,7 +40,9 @@
 
         if (DiscordOAuthCode != null)
         {
-            
+            Log.Warning("ACTIVATING RECURSION!");
+            NavigationManager.NavigateTo($"{RouteHelper.Login}?code={DiscordOAuthCode}");
+            return;
         }
 
         var returnUrl = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get("ReturnUrl");
