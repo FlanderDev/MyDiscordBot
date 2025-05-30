@@ -55,7 +55,13 @@
                 <td>
                     @if (LoginService.UserIsLoggedIn)
                     {
-                        <button title="Join your VC" @onclick="() => PlayClipAsync(audioData)">Play</button>
+                        <button class="btn btn-success" title="Join your VC" @onclick="() => PlayClipAsync(audioData)">Play</button>
+                    }
+                </td>
+                <td>
+                    @if (LoginService.UserIsLoggedIn)
+                    {
+                        <button class="btn btn-danger" title="Deletes the clip" @onclick="() => DeleteClipAsync(audioData)">Play</button>
                     }
                 </td>
                 <td>@audioData.StatusMessage</td>
@@ -92,28 +98,60 @@
         StateHasChanged();
     }
 
+    private async Task DeleteClipAsync(AudioClipComponentData audioData)
+    {
+        try
+        {
+            var user = HttpContextAccessor.GetUserFromHttpContextAccessor();
+            if (user == null)
+            {
+                Log.Warning("Unauthenticated user tried to delete clip '{callCode}'.", audioData.AudioClip.CallCode);
+                audioData.StatusMessage = "Authentication error!";
+                return;
+            }
+
+            audioData.StatusMessage = "Deleting...";
+            DatabaseContext.AudioClips.Remove(audioData.AudioClip);
+            var changes = await DatabaseContext.SaveChangesAsync();
+            if (changes == 0)
+            {
+                Log.Warning("DiscordId '{discordName}' tried to delete non existent clip with '{callCode}'", user.Value.DiscordId, audioData.AudioClip.CallCode);
+                audioData.StatusMessage = "No clip to delete.";
+                return;
+            }
+
+            Log.Information("DiscordId '{discordName}' deleted clip with CallCode '{callCode}'.", user.Value.DiscordId, audioData.AudioClip.CallCode);
+            audioData.StatusMessage = "Deleted.";
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "An error occured trying to delete clip '{clipName}'.", audioData.AudioClip.CallCode);
+            audioData.StatusMessage = "Error!";
+        }
+    }
+
     private async Task PlayClipAsync(AudioClipComponentData audioData)
     {
         try
         {
             audioData.StatusMessage = "Processing...";
-            var id = HttpContextAccessor.GetUserIdFromHttpContextAccessor();
-            if (id == null)
+            var user = HttpContextAccessor.GetUserFromHttpContextAccessor();
+            if (user == null)
             {
                 Log.Warning("Invalid sid from httpContext.");
                 audioData.StatusMessage = "You need to re-authenticate.";
                 return;
             }
 
-            if (await DiscordNet.DiscordSocketClient.GetUserAsync(id.Value) is not SocketUser socketUser)
+            if (await DiscordNet.DiscordSocketClient.GetUserAsync(user.Value.DiscordId) is not SocketUser socketUser)
             {
-                Log.Warning("Could not user from id.");
+                Log.Warning("Could not get user from id.");
                 audioData.StatusMessage = "You're not connected to a VC on a server.";
                 return;
             }
 
             var socketGuildUser = socketUser.MutualGuilds
-                .Select(s => s.GetUser(id.Value))
+                .Select(s => s.GetUser(user.Value.DiscordId))
                 .FirstOrDefault(w => w.VoiceChannel != null);
             if (socketGuildUser == null)
             {

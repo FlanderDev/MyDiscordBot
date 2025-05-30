@@ -63,10 +63,10 @@
 
     private async Task HandleSelectedFiles(InputFileChangeEventArgs e)
     {
-        var discordId = ContextAccessor.GetUserIdFromHttpContextAccessor();
+        var user = ContextAccessor.GetUserFromHttpContextAccessor();
         Message = "Processing...";
         _fileUploadStatuses.Clear();
-        if (discordId == null)
+        if (user == null)
         {
             Message = "Could not validate your credentials, please reload.";
             return;
@@ -121,7 +121,7 @@
                 var audioClip = new AudioClip
                     {
                         CallCode = Path.GetFileNameWithoutExtension(browserFile.Name),
-                        DiscordUserId = discordId.Value,
+                        DiscordUserId = user.Value.DiscordId,
                         FilePath = Path.GetRelativePath(FileHelper.AppStorage.FullName, filePath)
                     };
 
