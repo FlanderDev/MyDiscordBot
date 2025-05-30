@@ -49,8 +49,6 @@
 <p>@Message</p>
 
 @code {
-    [Parameter]
-    public Action<AudioClip>? AddAudioClip { get; set; }
     private string Message { get; set; } = string.Empty;
     private readonly List<FileUploadStatus> _fileUploadStatuses = [];
     private static IReadOnlyCollection<string> _validExtensions = [".mp3", ".ogg", ".mp4"];
@@ -128,8 +126,6 @@
                 var result = await ClipHelper.AddNewClipAsync(audioClip);
                 status.FilePath = filePath;
                 status.Status = result ? "Uploaded ✅" : "Failed ❌";
-
-                AddAudioClip?.Invoke(audioClip);
             }
             catch (Exception ex)
             {

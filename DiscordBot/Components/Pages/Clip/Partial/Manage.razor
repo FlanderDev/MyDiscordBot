@@ -13,8 +13,12 @@
 @using Microsoft.EntityFrameworkCore
 @using Serilog
 
+@{
+    DatabaseContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+}
+
 <h3>Clip-Manager</h3>
-<h5>TimeStamp (refreshes @(RefreshInSeconds)s): @DateTime.Now.Ticks</h5>
+<button class="btn btn-info" @onclick="LoadClipsAsync">Refresh</button>
 <label>
     Disconnect when done
     <InputCheckbox @bind-Value="_disconnectWhenDone" />
@@ -29,10 +33,12 @@
             @if (LoginService.UserIsLoggedIn)
             {
                 <th>Play</th>
+                <th>Delete</th>
             }
             else
             {
-                <th>Play (<a href=""></a>)</th>
+                <th>Play (<a href="@RouteHelper.Login">Login</a>)</th>
+                <th>Delete (<a href="@RouteHelper.Login">Login</a>)</th>
             }
             <th>Status</th>
         </tr>
@@ -61,7 +67,7 @@
                 <td>
                     @if (LoginService.UserIsLoggedIn)
                     {
-                        <button class="btn btn-danger" title="Deletes the clip" @onclick="() => DeleteClipAsync(audioData)">Play</button>
+                        <button class="btn btn-danger" title="Deletes the clip" @onclick="() => DeleteClipAsync(audioData)">Delete</button>
                     }
                 </td>
                 <td>@audioData.StatusMessage</td>
@@ -73,16 +79,17 @@
 @code
 {
     private const int RefreshInSeconds = 3;
-
-    [Parameter]
-    public List<AudioClip> AudioClips { get; set; } = [];
-
     private bool _disconnectWhenDone;
     private List<AudioClipComponentData> _audioClipData = [];
     protected override async Task OnInitializedAsync()
     {
+        _audioClipData.Clear();
+        await LoadClipsAsync();
+    }
+
+    private async Task LoadClipsAsync()
+    {
         var queryResult = await DatabaseContext.AudioClips
-            .AsNoTracking()
             .Include(i => i.DiscordUser)
             .ToListAsync();
 
@@ -90,12 +97,6 @@
             .Select(s => new AudioClipComponentData { AudioClip = s })
             .ToList();
         _audioClipData = clipData;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await Task.Delay(RefreshInSeconds * 1000);
-        StateHasChanged();
     }
 
     private async Task DeleteClipAsync(AudioClipComponentData audioData)
@@ -111,6 +112,7 @@
             }
 
             audioData.StatusMessage = "Deleting...";
+            _audioClipData.Remove(audioData);
             DatabaseContext.AudioClips.Remove(audioData.AudioClip);
             var changes = await DatabaseContext.SaveChangesAsync();
             if (changes == 0)
