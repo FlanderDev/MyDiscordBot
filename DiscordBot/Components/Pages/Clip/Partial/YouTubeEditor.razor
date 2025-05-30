@@ -1,0 +1,27 @@
+﻿@page "/Clip/YouTubeEditor"
+@rendermode InteractiveServer
+
+<h3>YouTube Editor</h3>
+<InputText @bind-Value="TextInput" />
+<button @onclick="LoadVideo" type="submit">Load Video</button>
+
+
+<iframe
+    class="h-100"
+    src="@YouTubeVideoUrl"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+</iframe>
+
+@code
+{
+    private string TextInput { get; set; } = string.Empty;
+    private string YouTubeVideoUrl { get; set; } = string.Empty;
+    private void LoadVideo()
+    {
+        YouTubeVideoUrl = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+        // YouTubeVideoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    }
+}
