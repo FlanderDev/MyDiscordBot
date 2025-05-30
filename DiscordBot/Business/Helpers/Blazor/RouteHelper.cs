@@ -1,6 +1,7 @@
 ﻿using DiscordBot.Components.Pages;
 using DiscordBot.Components.Pages.Chat;
 using DiscordBot.Components.Pages.Clip;
+using DiscordBot.Components.Pages.Clip.Partial;
 using DiscordBot.Components.Pages.User;
 using Microsoft.AspNetCore.Components;
 using Serilog;
@@ -12,8 +13,9 @@ public static class RouteHelper
 {
     internal static readonly string Home = GetPageRouteTemplate<Home>();
     internal static readonly string Error = GetPageRouteTemplate<Error>();
-    internal static readonly string Clip = GetPageRouteTemplate<Clip>();
     internal static readonly string Chat = GetPageRouteTemplate<Chat>();
+    internal static readonly string Clip = GetPageRouteTemplate<Clip>();
+    internal static readonly string ClipEditor = GetPageRouteTemplate<EditClip>();
     internal static readonly string Login = GetPageRouteTemplate<Login>();
     internal static readonly string Logout = GetPageRouteTemplate<Logout>();
 

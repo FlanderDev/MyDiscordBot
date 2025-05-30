@@ -63,14 +63,14 @@ internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOp
             if (!restResponse.IsSuccessful)
             {
                 Log.Error("Bad response from discord OAuth2 token validation.");
-                return true;
+                return false;
             }
 
             var accessToken = (JsonConvert.DeserializeObject(restResponse.Content ?? string.Empty) as JObject)?["access_token"]?.Value<string>();
             if (string.IsNullOrWhiteSpace(accessToken))
             {
                 Log.Error("Could not deserialize response and get the access token.");
-                return true;
+                return false;
             }
             Log.Verbose("Got access-token '{token}'.", accessToken);
 
