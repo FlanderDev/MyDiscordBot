@@ -5,6 +5,7 @@
 @inject NavigationManager NavigationManager
 @using System.Web
 @using DiscordBot.Business.Helpers.Blazor
+@using Serilog
 
 <b>If you don't get redirected after a few seconds, click the link below.</b>
 <a href="@LoginService.DiscordAuthUrl">Click here to retry login.</a>
@@ -34,7 +35,13 @@
         if (LoginService.UserIsLoggedIn)
             return;
 
-        var returnUrl = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get("ReturnUrl");
-        NavigationManager.NavigateTo(returnUrl == null ? LoginService.DiscordAuthUrl : $"{LoginService.DiscordAuthUrl}&state={returnUrl}");
+        if (DiscordOAuthCode == null)
+        {
+            var returnUrl = HttpUtility.ParseQueryString(new Uri(NavigationManager.Uri).Query).Get("ReturnUrl");
+            NavigationManager.NavigateTo(returnUrl == null ? LoginService.DiscordAuthUrl : $"{LoginService.DiscordAuthUrl}&state={returnUrl}");
+            return;
+        }
+
+        Log.Error("HOW DID U LAND HERE?!");
     }
 }

@@ -77,6 +77,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
+#if !DEBUG
             if (await DiscordSocketClient.GetChannelAsync(1270659363132145796) is ITextChannel textChannel)
             {
                 DebugChannel = textChannel;
@@ -84,7 +85,7 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
                 var message = LoginMessages[Random.Shared.Next(messages - 1)];
                 await textChannel.SendMessageAsync(message);
             }
-
+#endif
             DiscordSocketClient.MessageReceived += MessageReceivedAsync;
 
             if (cancellationToken.IsCancellationRequested)
