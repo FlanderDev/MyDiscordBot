@@ -1,12 +1,13 @@
-﻿@page "/Chat"
-@* @page "/Chat/{GuildId}/0" *@
-@page "/Chat/{GuildId}/{ChannelId}"
+﻿@page "/Control/Chat"
+@page "/Control/Chat/{GuildId}/{ChannelId}"
 @rendermode InteractiveServer
+@attribute [Authorize]
 @inject DiscordNet DiscordNet
 @using Discord
 @using Discord.WebSocket
 @using DiscordBot.Business.Bots
 @using DiscordBot.Business.Helpers.Blazor
+@using Microsoft.AspNetCore.Authorization
 
 <h3>Select an option</h3>
 
@@ -16,8 +17,10 @@
         @foreach (var guild in Guilds)
         {
             <div>
-                <img width="100rem" height="100rem" src="@guild.IconUrl" alt="server icon" />
-                <a href="@($"{RouteHelper.Chat}/{guild.Id}/{ChannelId}")">@guild.Name</a>
+                <a href="@($"{RouteHelper.ControlChat}/{guild.Id}/{ChannelId}")">
+                    <img width="100rem" height="100rem" src="@guild.IconUrl" alt="server icon" />
+                    @guild.Name
+                </a>
             </div>
         }
     </div>
@@ -26,11 +29,11 @@
         @foreach (var channel in TextChannels)
         {
             <div>
-                <a href="@($"{RouteHelper.Chat}/{GuildId}/{channel.Id}")">@channel.Name</a>
+                <a href="@($"{RouteHelper.ControlChat}/{GuildId}/{channel.Id}")">@channel.Name</a>
             </div>
         }
     </div>
-    
+
     <div class="col">
         <InputTextArea @bind-Value="Message"></InputTextArea>
         <button @onclick="SendMessageAsync">Send</button>

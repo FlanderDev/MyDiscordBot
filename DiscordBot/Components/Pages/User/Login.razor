@@ -1,5 +1,5 @@
 ﻿@page "/Login"
-@page "/User/oAuth/Discord"
+@* @page "/User/oAuth/Discord" *@
 @rendermode InteractiveServer
 @inject LoginService LoginService
 @inject NavigationManager NavigationManager
@@ -23,7 +23,8 @@
         if (DiscordOAuthCode != null)
         {
             Log.Information("Logging in user with from WEB-UI.");
-            await LoginService.LoginUserAsync(DiscordOAuthCode);
+            if (await LoginService.LoginUserAsync(DiscordOAuthCode))
+                Log.Error("Login failure.");
         }
     }
 

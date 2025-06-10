@@ -12,11 +12,13 @@ namespace DiscordBot.Business.Commands;
 
 public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<SocketCommandContext>
 {
-    internal async Task<bool> IfInvalidCancelAsync()
+    internal async Task<bool> ReplyWithFailureIfUnprivilegedAsync()
     {
         var currentUserId = Context.Message.Author.Id;
-        var adminId = options.Value.Discord.UserIdOfAdmin;
-        var result = (adminId != 0 && currentUserId == adminId) || new DatabaseContext().DiscordUsers.Any(a => a.Administrator && a.Id == currentUserId);
+        var defaultAdminIds = options.Value.Discord.IdOfAdmins;
+        
+        var result = (defaultAdminIds.Count != 0 && defaultAdminIds.Contains(currentUserId))
+                      || new DatabaseContext().DiscordUsers.Any(a => a.Administrator && a.Id == currentUserId);
         if (result)
             return true;
 
@@ -60,7 +62,7 @@ public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<S
     [Command("debug update")]
     public async Task UpdateYouTubeDownloaderAsync()
     {
-        if (!await IfInvalidCancelAsync())
+        if (!await ReplyWithFailureIfUnprivilegedAsync())
             return;
 
         var result = await DownloadHelper.UpdateYtDlpAsync() ? "succeeded" : "failed";
@@ -70,7 +72,7 @@ public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<S
     [Command("debug dbReset")]
     public async Task ExecuteDbResetAsync()
     {
-        if (!await IfInvalidCancelAsync())
+        if (!await ReplyWithFailureIfUnprivilegedAsync())
             return;
 
         await using var databaseContext = new DatabaseContext();
@@ -82,7 +84,7 @@ public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<S
     [Command("debug addPrivilegedUser")]
     public async Task AddPrivilegedUserAsync()
     {
-        if (!await IfInvalidCancelAsync())
+        if (!await ReplyWithFailureIfUnprivilegedAsync())
             return;
 
         await using var databaseContext = new DatabaseContext();

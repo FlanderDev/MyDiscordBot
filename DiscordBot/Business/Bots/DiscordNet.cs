@@ -21,6 +21,8 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
 
     private readonly CommandService _commands = new();
 
+    private int _currentReconnectAttempt = 0;
+
     private static string[] LoginMessages => [
         $"It's {DateTime.Now:T} and I'm ready to fuck shit up!",
         "> You know the pepeloni? The nooo one.",
@@ -63,9 +65,26 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
                 throw new ArgumentException("The token is invalid.");
             }
 
-            var botBooting = new TaskCompletionSource();
-            DiscordSocketClient.Ready += () => Task.Run(botBooting.SetResult, cancellationToken);
-            DiscordSocketClient.Disconnected += async _ => await StopAsync(cancellationToken);
+            // When the bot disconnect it should be logged and a reconnect should be tried.
+            DiscordSocketClient.Disconnected += async _ =>
+            {
+                if (_currentReconnectAttempt > options.Value.Discord.ReconnectAttemptsMax)
+                {
+                    Log.Fatal("All {maxTries} reconnection attempts have failed. No more automatic retires, until manual connection succeeded.",
+                        options.Value.Discord.ReconnectAttemptsMax);
+                    return;
+                }
+
+                _currentReconnectAttempt++;
+                Log.Warning("Disconnected: The bot has lost connection. Reconnecting attempt {try} of {max} will be made in {delay} seconds.", 
+                    _currentReconnectAttempt, 
+                    options.Value.Discord.ReconnectAttemptsMax,
+                    options.Value.Discord.ReconnectAttemptDelaySeconds);
+
+                await StartAsync(cancellationToken);
+                Log.Information("Disconnected: Reconnection successful.");
+            };
+
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), serviceProvider);
             await DiscordSocketClient.LoginAsync(TokenType.Bot, options.Value.Discord.Token);
             await DiscordSocketClient.StartAsync();
@@ -73,6 +92,15 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
 
             Log.Information("Bot starting...");
             var stopwatch = Stopwatch.StartNew();
+            
+            // Block this task until the bot fires the 'Ready'-Event.
+            var botBooting = new TaskCompletionSource();
+            DiscordSocketClient.Ready += () =>
+            {
+                _currentReconnectAttempt = 0;
+                Log.Information("Ready: The bot is ready for usage. {reconnectAttempts} have been required." , _currentReconnectAttempt);
+                return Task.Run(botBooting.SetResult, cancellationToken);
+            };
             await botBooting.Task.WaitAsync(cancellationToken);
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));

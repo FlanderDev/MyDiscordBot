@@ -1,5 +1,7 @@
 ﻿@inherits Microsoft.AspNetCore.Components.LayoutComponentBase
 @inject IHttpContextAccessor HttpContextAccessor
+@inject DiscordNet DiscordNet
+@using DiscordBot.Business.Bots
 @using DiscordBot.Business.Helpers.Blazor
 
 <div class="mx-4 d-flex flex-column min-vh-100">
@@ -8,15 +10,25 @@
 
     @Body
 
-    <footer class="mt-auto">
-        @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
-        {
-            <p>Welcome <i>@HttpContextAccessor.HttpContext?.User.Identity.Name</i>, wanna <a href="@RouteHelper.Logout">leave</a>?</p>
-        }
-        else
-        {
-            <b>Bruh ain't <a href="@RouteHelper.Login">logged in</a>, couldn't be me.</b>
-        }
+    <footer class="mt-auto row">
+        <div class="col-auto">
+            @if (HttpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated ?? false)
+            {
+                <p>
+                    Welcome <i>@HttpContextAccessor.HttpContext?.User.Identity.Name</i>!
+                    <br/>
+                    Want to <a href="@RouteHelper.Logout">leave</a>?
+                </p>
+            }
+            else
+            {
+                <b>Bruh ain't <a href="@RouteHelper.Login">logged in</a>, couldn't be me.</b>
+            }
+        </div>
+        <div class="col"></div>
+        <div class="col-auto">
+            <p>Bot-Status: @DiscordNet.DiscordSocketClient.Status.ToString()</p>
+        </div>
     </footer>
 </div>
 

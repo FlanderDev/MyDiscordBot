@@ -9,10 +9,11 @@ using RestSharp;
 using Serilog;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DiscordBot.Business.Helpers.Blazor;
 
-internal sealed class LoginService(IHttpContextAccessor httpContextAccessor, IOptions<Configuration> options)
+public sealed class LoginService([FromServices] IHttpContextAccessor httpContextAccessor, IOptions<Configuration> options)
 {
     internal readonly string DiscordAuthUrl =
         new StringBuilder("https://discord.com/api/oauth2/authorize?client_id=")

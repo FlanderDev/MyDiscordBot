@@ -1,0 +1,89 @@
+﻿@page "/Control/Voice"
+@page "/Control/Voice/{GuildId}/{ChannelId}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject DiscordNet DiscordNet
+@using Discord.WebSocket
+@using DiscordBot.Business.Bots
+@using DiscordBot.Business.Helpers.Blazor
+@using Microsoft.AspNetCore.Authorization
+@using Serilog
+
+<h3>Select an option</h3>
+
+<h3>Voice</h3>
+<div class="row align-items-start">
+    <div class="col-2">
+        @foreach (var guild in _guilds)
+        {
+            <div>
+                <a href="@($"{RouteHelper.ControlVoice}/{guild.Id}/{ChannelId}")">
+                    <img width="100rem" height="100rem" src="@guild.IconUrl" alt="server icon" />
+                    @guild.Name
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="col-2">
+        @foreach (var channel in _voiceChannels)
+        {
+            <div>
+                <a href="@($"{RouteHelper.ControlVoice}/{GuildId}/{channel.Id}")">@channel.Name</a>
+            </div>
+        }
+    </div>
+
+    <div class="col">
+        @if (VoiceChannel != null)
+        {
+            <h1>Joining "@VoiceChannel.Name"</h1>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string GuildId
+    {
+        get => _guildId.ToString();
+        set => _guildId = ulong.TryParse(value, out var num) ? num : 0;
+    }
+    private ulong _guildId;
+
+    [Parameter]
+    public string ChannelId
+    {
+        get => _channelId.ToString();
+        set => _channelId = ulong.TryParse(value, out var num) ? num : 0;
+    }
+    private ulong _channelId;
+
+    private SocketVoiceChannel? VoiceChannel { get; set; }
+    private IReadOnlyCollection<SocketGuild> _guilds = [];
+    private IReadOnlyCollection<SocketVoiceChannel> _voiceChannels = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _guilds = DiscordNet.DiscordSocketClient.Guilds;
+        var guild = DiscordNet.DiscordSocketClient.Guilds.FirstOrDefault(f => f.Id == _guildId);
+        if (guild == null)
+            return;
+
+        _voiceChannels = guild.VoiceChannels;
+        VoiceChannel = _voiceChannels.FirstOrDefault(f => f.Id == _channelId);
+        if (VoiceChannel == null)
+            return;
+
+        try
+        {
+            Log.Information("------------: JOINING VOICE");
+            var result = await VoiceChannel.ConnectAsync();
+            Log.Information("------------: JOINED VOICE");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "------------: ERROR JOINING");
+        }
+    }
+}

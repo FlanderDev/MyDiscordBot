@@ -3,9 +3,18 @@
 
 <PageTitle>Home</PageTitle>
 
+<h1>--Dynamic-Start--</h1>
+
+@foreach (var entry in RouteHelper.PageRoutes)
+{
+    <a class="me-auto" href="@entry">@entry</a>
+    <br />
+}
+<h1>--Dynamic-End--</h1>
+
 <a href="@RouteHelper.Clip">@RouteHelper.Clip</a>
 <br />
-<a href="@RouteHelper.Chat">@RouteHelper.Chat</a>
+<a href="@RouteHelper.ControlChat">@RouteHelper.ControlChat</a>
 <br />
 <a href="@RouteHelper.YouTubeEditor">@RouteHelper.YouTubeEditor</a>
 <br />
