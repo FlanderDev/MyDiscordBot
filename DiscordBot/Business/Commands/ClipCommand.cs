@@ -55,7 +55,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 return;
             }
 
-            var callCodeMaxLength = Attribute.GetCustomAttribute(callCodeProperty, typeof(AudioClip)) as MaxLengthAttribute;
+            var callCodeMaxLength = callCodeProperty.GetCustomAttribute<MaxLengthAttribute>();
             if (callCodeMaxLength?.Length < callCode.Length)
             {
                 Log.Verbose("The call code '{callCode}' is '{callCodeLength}' long, which is more then the allowed '{callCodeMaxLength}'.", callCode, callCode.Length, callCodeMaxLength);
@@ -92,6 +92,8 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
                 await Context.Message.ReplyAsync($"Successfully added new clip, with call code '{callCode}'.");
             else
                 await Context.Message.ReplyAsync($"Could not add new clip, with call code; '{callCode}'.");
+
+            Log.Information("User '{userName}' added clip '{callcode}' with url '{url}'.", Context.Message.Author.GlobalName, callCode, url);
         }
         catch (Exception ex)
         {
