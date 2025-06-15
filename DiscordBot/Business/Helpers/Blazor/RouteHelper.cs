@@ -22,7 +22,9 @@ public static class RouteHelper
     internal static readonly string Clip = GetPageRouteTemplate<Clip>();
     internal static readonly string YouTubeEditor = GetPageRouteTemplate<YouTubeEditor>();
 
-    internal static IReadOnlyCollection<string> PageRoutes = GetDefinedRoutes();
+    internal static List<IGrouping<string, string>> GroupedPageRoutes = [.. GetDefinedRoutes()
+        .GroupBy(g => g.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .First())];
 
     public static string GetPageRouteTemplate<T>() where T : ComponentBase
     {
@@ -44,7 +46,7 @@ public static class RouteHelper
         var componentRoutes = Assembly.GetExecutingAssembly()
             .DefinedTypes
             .Where(w => w.BaseType == componentBase)
-            .Select(s => s.GetCustomAttributes<RouteAttribute>().FirstOrDefault(f => !f.Template .Contains('{'))?.Template ?? string.Empty)
+            .Select(s => s.GetCustomAttributes<RouteAttribute>().FirstOrDefault(f => !f.Template.Contains('{'))?.Template ?? string.Empty)
             .Where(w => !string.IsNullOrWhiteSpace(w))
             .ToList();
 

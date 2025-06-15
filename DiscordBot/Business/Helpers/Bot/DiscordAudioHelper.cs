@@ -3,12 +3,11 @@ using System.Diagnostics;
 
 namespace DiscordBot.Business.Helpers.Bot;
 
-internal sealed class DiscordAudioHelper(IAudioClient audioClient) : IDisposable
+internal static class DiscordAudioHelper
 {
-    private readonly AudioOutStream _audioOutStream = audioClient.CreatePCMStream(AudioApplication.Mixed);
-
-    internal async Task PlayAudioAsync(string resource)
+    internal static async Task PlayAudioAsync(this IAudioClient audioClient, string resource, CancellationToken cancellationToken = default)
     {
+        using var audioOutStream = audioClient.CreateDirectPCMStream(AudioApplication.Mixed);
         using var ffmpegProcess = Process.Start(new ProcessStartInfo
         {
             FileName = "ffmpeg",
@@ -18,13 +17,7 @@ internal sealed class DiscordAudioHelper(IAudioClient audioClient) : IDisposable
         }) ?? throw new Exception("Could not initialize ffmpeg process.");
 
         await using var ffmpegStream = ffmpegProcess.StandardOutput.BaseStream;
-        await ffmpegStream.CopyToAsync(_audioOutStream);
-        await _audioOutStream.FlushAsync();
-
-    }
-
-    public void Dispose()
-    {
-        _audioOutStream.Dispose();
+        await ffmpegStream.CopyToAsync(audioOutStream, cancellationToken);
+        await audioOutStream.FlushAsync(cancellationToken);
     }
 }

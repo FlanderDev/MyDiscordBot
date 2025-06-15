@@ -1,16 +1,27 @@
-﻿@page "/"
+﻿@page "/Home"
+@page "/"
 @using DiscordBot.Business.Helpers.Blazor
 
 <PageTitle>Home</PageTitle>
 
-<h1>--Dynamic-Start--</h1>
-
-@foreach (var entry in RouteHelper.PageRoutes)
+@foreach (var routeGroup in RouteHelper.GroupedPageRoutes)
 {
-    <a class="me-auto" href="@entry">@entry</a>
-    <br />
+
+    <dl>
+        <dt><a href="/@routeGroup.Key">@routeGroup.Key</a></dt>
+        @foreach (var entry in routeGroup)
+        {
+            if (entry.EndsWith(routeGroup.Key))
+                continue;
+
+            <dd class="mb-0 ms-2">
+                <a href="@entry">@entry</a>
+            </dd>
+        }
+    </dl>
 }
-<h1>--Dynamic-End--</h1>
+
+@* <h1>--Dynamic-End--</h1>
 
 <a href="@RouteHelper.Clip">@RouteHelper.Clip</a>
 <br />
@@ -18,3 +29,5 @@
 <br />
 <a href="@RouteHelper.YouTubeEditor">@RouteHelper.YouTubeEditor</a>
 <br />
+
+ *@

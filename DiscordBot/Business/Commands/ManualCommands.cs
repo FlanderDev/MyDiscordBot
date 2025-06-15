@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
 
 namespace DiscordBot.Business.Commands;
 
@@ -7,40 +8,24 @@ internal class ManualCommands(SocketUserMessage socketUserMessage)
 {
     public async Task TriggerAllAsync()
     {
-        await Task.WhenAll(ClaimAsync(), ReplaceLinksAsync());
+        await Task.WhenAll(TriggerTypingAsync(), ReplaceLinksAsync());
     }
 
-    private async Task ClaimAsync()
-    {
-        if (!socketUserMessage.CleanContent.StartsWith(".claim", StringComparison.OrdinalIgnoreCase))
-            return;
-
-        if (socketUserMessage.ReferencedMessage == null)
-            return;
-
-        var referenceMessage = await socketUserMessage.Channel.GetMessageAsync(socketUserMessage.ReferencedMessage.Id);
-        var component = referenceMessage.Components.FirstOrDefault();
-        if (component is not ActionRowComponent actionRowComponent)
-            return;
-
-        var messageComponent = actionRowComponent.Components.FirstOrDefault();
-        if (messageComponent is not ButtonComponent buttonComponent)
-            return;
-
-        await referenceMessage.AddReactionAsync(buttonComponent.Emote);
-    }
+    private async Task TriggerTypingAsync() => await socketUserMessage.Channel.TriggerTypingAsync();
 
     private async Task ReplaceLinksAsync()
     {
-        foreach (var task in (IEnumerable<Task<bool>>)[
+        await Task.WhenAny([
                      LinkReplacerAsync("fxtwitter.com", ["fxtwitter.com", "x.com", "twitter.com"]),
-                     LinkReplacerAsync("vxreddit.com", ["fxtwitter.com", "x.com", "twitter.com"])])
-            if (await task)
-                break;
+                     LinkReplacerAsync("vxreddit.com", ["fxtwitter.com", "x.com", "twitter.com"])
+                     ]);
 
         return;
         async Task<bool> LinkReplacerAsync(string replacement, string[] toReplace)
         {
+            if (socketUserMessage.CleanContent.Contains(replacement, StringComparison.OrdinalIgnoreCase))
+                return false;
+
             var match = toReplace.FirstOrDefault(a => socketUserMessage.CleanContent.Contains(a, StringComparison.OrdinalIgnoreCase));
             if (match == null)
                 return false;

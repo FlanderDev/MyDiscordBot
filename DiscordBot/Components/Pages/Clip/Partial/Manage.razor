@@ -164,8 +164,7 @@
 
             audioData.StatusMessage = "Playing...";
             var audioClient = await socketGuildUser.VoiceChannel.ConnectAsync();
-            using var audioHelper = new DiscordAudioHelper(audioClient);
-            await audioHelper.PlayAudioAsync(audioData.AudioClip.FilePath);
+            await audioClient.PlayAudioAsync(audioData.AudioClip.FilePath);
             if (_disconnectWhenDone)
                 await socketGuildUser.VoiceChannel.DisconnectAsync();
 

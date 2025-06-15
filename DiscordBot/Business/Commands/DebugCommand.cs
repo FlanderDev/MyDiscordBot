@@ -1,22 +1,27 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
+using DiscordBot.Business.Bots;
 using DiscordBot.Business.Helpers.Bot;
 using DiscordBot.Data;
 using DiscordBot.Models.Entities;
 using DiscordBot.Models.Internal.Configs;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace DiscordBot.Business.Commands;
 
-public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<SocketCommandContext>
+public sealed class DebugCommand(
+    [FromServices] IOptions<Configuration> options,
+    [FromServices] DiscordNet discordNet) : ModuleBase<SocketCommandContext>
 {
     internal async Task<bool> ReplyWithFailureIfUnprivilegedAsync()
     {
         var currentUserId = Context.Message.Author.Id;
         var defaultAdminIds = options.Value.Discord.IdOfAdmins;
-        
+
         var result = (defaultAdminIds.Count != 0 && defaultAdminIds.Contains(currentUserId))
                       || new DatabaseContext().DiscordUsers.Any(a => a.Administrator && a.Id == currentUserId);
         if (result)
@@ -27,8 +32,9 @@ public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<S
         return false;
     }
 
+    #region Unprivileged
     [Command("stop")]
-    public static async Task StopAsync()
+    public async Task StopAsync()
     {
         try
         {
@@ -44,7 +50,6 @@ public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<S
         }
     }
 
-    #region Unprivileged
     [Command("debug ping")]
     public async Task PingAsync() => await Context.Message.ReplyAsync("pong");
 
@@ -58,7 +63,54 @@ public sealed class DebugCommand(IOptions<Configuration> options) : ModuleBase<S
     }
     #endregion
 
+
+
     #region Privileged
+    [Command("playAudioOnAllServers")]
+    public async Task PlayAudioOnAllServersAsync()
+    {
+        try
+        {
+            if (!await ReplyWithFailureIfUnprivilegedAsync())
+                return;
+
+
+            using var context = new DatabaseContext();
+            var audioClip = context.AudioClips.AsNoTracking().FirstOrDefault();
+            if (audioClip == null)
+                return;
+
+            var guilds = discordNet.DiscordSocketClient.Guilds.ToList();
+            var tasks = guilds.Where(f => f.Name.Equals("Nerds & Weebs", StringComparison.OrdinalIgnoreCase))
+                .Select(s => PlayAudioOnServerAsync(s))
+                .ToList();
+
+            await Task.WhenAll(tasks);
+            Log.Information("Done playing on all servers {guildAmount}.", guilds.Count);
+            return;
+
+            async Task<bool> PlayAudioOnServerAsync(SocketGuild guild)
+            {
+                var voiceChannel = guild.VoiceChannels.First();
+                if (voiceChannel == null)
+                    return false;
+
+                Log.Information("Connecting to '{channel}' in '{guild}'.", voiceChannel.Name, guild.Name);
+                var audioChannel = await voiceChannel.ConnectAsync();
+
+                Log.Information("Playing in '{channel}' in '{guild}'.", voiceChannel.Name, voiceChannel.Name);
+                _ = audioChannel.PlayAudioAsync(audioClip.FilePath);
+
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error playing on all servers.");
+        }
+    }
+
+
     [Command("debug update")]
     public async Task UpdateYouTubeDownloaderAsync()
     {

@@ -122,8 +122,7 @@ public sealed partial class ClipCommand : ModuleBase<SocketCommandContext>
             }
 
             var audioClient = await guildUser.VoiceChannel.ConnectAsync();
-            using var audioHelper = new DiscordAudioHelper(audioClient);
-            await audioHelper.PlayAudioAsync(audioClip.FilePath);
+            await audioClient.PlayAudioAsync(audioClip.FilePath);
         }
         catch (Exception ex)
         {

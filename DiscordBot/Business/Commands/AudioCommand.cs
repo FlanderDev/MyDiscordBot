@@ -17,7 +17,6 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
         }
 
         var audioClient = await voiceChannel.ConnectAsync();
-        using var audioHelper = new DiscordAudioHelper(audioClient);
 
         var cancelToken = Common.SetNewCancelSource();
         for (var i = 12; i < 600; i++)
@@ -32,7 +31,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
                 await Context.Channel.SendMessageAsync("Your not in a VC, gomenasorry.");
                 continue;
             }
-            await audioHelper.PlayAudioAsync(audioResource);
+            await audioClient.PlayAudioAsync(audioResource);
         }
     }
 
@@ -64,7 +63,6 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
             }
 
             var audioClient = await voiceChannel.ConnectAsync();
-            using var audioHelper = new DiscordAudioHelper(audioClient);
 
             for (var i = 0; i < aras; i++)
             {
@@ -75,7 +73,7 @@ public sealed class AudioCommand : ModuleBase<SocketCommandContext>
                     _ = Context.Channel.SendMessageAsync($"[Ara-{num}]({araUrl})");
 
                 var audioResource = await FileHelper.GetLocalResourceOrDownloadAsync($"ara-{num}.mp3", araUrl);
-                await audioHelper.PlayAudioAsync(araUrl);
+                await audioClient.PlayAudioAsync(araUrl);
             }
         }
         catch (Exception ex)

@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 @inject DiscordNet DiscordNet
+@using Discord.Audio
 @using Discord.WebSocket
 @using DiscordBot.Business.Bots
 @using DiscordBot.Business.Helpers.Blazor
@@ -42,6 +43,8 @@
     </div>
 </div>
 
+<DiscordBot.Components.Pages.Clip.Partial.Manage />
+
 @code {
     [Parameter]
     public string GuildId
@@ -65,25 +68,29 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _guilds = DiscordNet.DiscordSocketClient.Guilds;
-        var guild = DiscordNet.DiscordSocketClient.Guilds.FirstOrDefault(f => f.Id == _guildId);
-        if (guild == null)
-            return;
-
-        _voiceChannels = guild.VoiceChannels;
-        VoiceChannel = _voiceChannels.FirstOrDefault(f => f.Id == _channelId);
-        if (VoiceChannel == null)
-            return;
-
         try
         {
-            Log.Information("------------: JOINING VOICE");
-            var result = await VoiceChannel.ConnectAsync();
-            Log.Information("------------: JOINED VOICE");
+            _guilds = DiscordNet.DiscordSocketClient.Guilds;
+            var guild = DiscordNet.DiscordSocketClient.Guilds.FirstOrDefault(f => f.Id == _guildId);
+            if (guild == null)
+            {
+                Log.Verbose("Could not get guild from client.");
+                return;
+            }
+
+            _voiceChannels = guild.VoiceChannels;
+            VoiceChannel = _voiceChannels.FirstOrDefault(f => f.Id == _channelId);
+            if (VoiceChannel == null)
+            {
+                Log.Verbose("Could not get voice channel from guild*.");
+                return;
+            }
+
+            await VoiceChannel.ConnectAsync();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "------------: ERROR JOINING");
+            Log.Error(ex, "Error joining voice.");
         }
     }
 }

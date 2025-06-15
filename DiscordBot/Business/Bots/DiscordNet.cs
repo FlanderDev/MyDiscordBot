@@ -98,14 +98,14 @@ public sealed class DiscordNet(IOptions<Configuration> options, IServiceProvider
             DiscordSocketClient.Ready += () =>
             {
                 _currentReconnectAttempt = 0;
-                Log.Information("Ready: The bot is ready for usage. {reconnectAttempts} have been required." , _currentReconnectAttempt);
+                Log.Information("Ready: The bot is ready for usage. {reconnectAttempts} Reconnect attempts have been required.", _currentReconnectAttempt);
                 return Task.Run(botBooting.SetResult, cancellationToken);
             };
             await botBooting.Task.WaitAsync(cancellationToken);
             stopwatch.Stop();
             Log.Information("Bot started. It took {time}", stopwatch.Elapsed.ToString("c"));
 
-#if Release
+#if DEBUG
             if (await DiscordSocketClient.GetChannelAsync(1270659363132145796) is ITextChannel textChannel)
             {
                 DebugChannel = textChannel;
