@@ -43,7 +43,10 @@
     </div>
 </div>
 
-<DiscordBot.Components.Pages.Clip.Partial.Manage />
+@if (VoiceChannel != null)
+{
+    <DiscordBot.Components.Pages.Clip.Partial.Manage />
+}
 
 @code {
     [Parameter]
